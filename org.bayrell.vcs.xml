@@ -27,6 +27,11 @@
 		<li>org.bayrell.modificator.cloud_os</li>
 		<li>org.bayrell.modificator.deploy_hostname</li>
 	</modificators>
+	<route>
+		<nginx>
+			rewrite /_var_route_prefix_/(.*) /$1 break;
+		</nginx>
+	</route>
 	<patch>
 		<name>Template patch</name>
 		<operations></operations>
