@@ -1,0 +1,34 @@
+<?xml version="1.1" encoding="UTF-8" ?>
+<template>
+	<uid>org.bayrell.vcs</uid>
+	<name>Version Control System</name>
+	<version>1.0</version>
+	<date>2022-05-30T16:54:00+06:00</date>
+	<maintainer>Ildar &lt;ildar@bayrell.org&gt;</maintainer>
+	<marketplace>https://cloud.bayrell.org/</marketplace>
+	<xml name="bayrell.org">https://cloud.bayrell.org/marketplace/org.bayrell.vcs.xml</xml>
+	<xml name="github.com">https://raw.githubusercontent.com/bayrell-os/ubuntu/main/org.bayrell.vcs.xml</xml>
+	<link name="Docker image">https://hub.docker.com/r/bayrell/vcs</link>
+	<link name="Source code">https://github.com/bayrell-os/vcs</link>
+	<link name="Marketplace">https://cloud.bayrell.org/ru/marketplace/app/org.bayrell.vcs</link>
+	<arch>amd64</arch>
+	<arch>arm64v8</arch>
+	<arch>arm32v7</arch>
+	<yaml>
+		<services>
+			<_var_app_name_>
+				<image>docker.io/bayrell/vsc:1.0</image>
+			</_var_app_name_>
+		</services>
+	</yaml>
+	<variables>
+	</variables>
+	<modificators>
+		<li>org.bayrell.modificator.cloud_os</li>
+		<li>org.bayrell.modificator.deploy_hostname</li>
+	</modificators>
+	<patch>
+		<name>Template patch</name>
+		<operations></operations>
+	</patch>
+</template>
