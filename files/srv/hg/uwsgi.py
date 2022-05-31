@@ -37,6 +37,7 @@ def application_mercurial(env, start_response):
     
     #env['REMOTE_USER'] = env['HTTP_REMOTE_USER']
     #env['SCRIPT_NAME'] = route_prefix + env['HTTP_SCRIPT_NAME']
+    env['SCRIPT_NAME'] = env['HTTP_SCRIPT_NAME']
     env['PATH_INFO'] = route_prefix + env['PATH_INFO']
     env['PATH_INFO'] = env['PATH_INFO'][ len(env['SCRIPT_NAME']): ]
     env['HGENCODING'] = 'UTF-8'
@@ -45,6 +46,7 @@ def application_mercurial(env, start_response):
     env["LANGUAGE"] = "en_US.UTF-8"
     os.environ["LANG"] = "en_US.UTF-8"
     os.environ["LANGUAGE"] = "en_US.UTF-8"
+    #print (env)
     
     # Set web.prefix
     baseui = ui.load()

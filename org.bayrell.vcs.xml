@@ -27,6 +27,7 @@
 		<li>org.bayrell.modificator.cloud_os</li>
 		<li>org.bayrell.modificator.deploy_hostname</li>
 	</modificators>
+	<use>domain</use>
 	<route>
 		<jwt_auth>true</jwt_auth>
 		<location>_var_route_prefix_</location>
