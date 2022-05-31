@@ -28,10 +28,41 @@
 		<li>org.bayrell.modificator.deploy_hostname</li>
 	</modificators>
 	<route>
+		<jwt_auth>true</jwt_auth>
+		<location>_var_route_prefix_</location>
+		<prefix>_var_route_prefix_</prefix>
 		<nginx>
-			rewrite /_var_route_prefix_/(.*) /$1 break;
+			rewrite _var_route_prefix_/(.*) /$1 break;
 		</nginx>
 	</route>
+	<route>
+		<jwt_auth>true</jwt_auth>
+		<base_auth>true</base_auth>
+		<location>_var_route_prefix_/hg</location>
+		<prefix>_var_route_prefix_</prefix>
+		<nginx>
+			gzip off;
+			rewrite _var_route_prefix_/(.*) /$1 break;
+		</nginx>
+	</route>
+	<route>
+		<jwt_auth>true</jwt_auth>
+		<base_auth>true</base_auth>
+		<location>_var_route_prefix_/git</location>
+		<prefix>_var_route_prefix_</prefix>
+		<nginx>
+			gzip off;
+			rewrite _var_route_prefix_/(.*) /$1 break;
+		</nginx>
+	</route>
+	<variables>
+		<variable>
+			<name>_var_route_prefix_</name>
+			<label>Route prefix</label>
+			<default>/vcs</default>
+			<type>string</type>
+		</variable>
+	</variables>
 	<patch>
 		<name>Template patch</name>
 		<operations></operations>
