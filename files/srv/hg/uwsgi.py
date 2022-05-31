@@ -36,7 +36,7 @@ def application_mercurial(env, start_response):
         route_prefix = env['HTTP_X_ROUTE_PREFIX']
     
     #env['REMOTE_USER'] = env['HTTP_REMOTE_USER']
-    env['SCRIPT_NAME'] = route_prefix + env['HTTP_SCRIPT_NAME']
+    #env['SCRIPT_NAME'] = route_prefix + env['HTTP_SCRIPT_NAME']
     env['PATH_INFO'] = route_prefix + env['PATH_INFO']
     env['PATH_INFO'] = env['PATH_INFO'][ len(env['SCRIPT_NAME']): ]
     env['HGENCODING'] = 'UTF-8'
