@@ -12,6 +12,7 @@ RUN cd ~; \
 	echo 'Ok'
     
 COPY files /
+COPY src /var/www/html
 
 RUN cd ~; \
     chmod +x /usr/bin/fcgiwrap.sh; \

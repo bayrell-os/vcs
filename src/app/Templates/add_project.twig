@@ -1,0 +1,47 @@
+{% extends "@app/layout.twig" %}
+
+{% block content %}
+
+<h1>Add project</h1>
+
+<form class="web_form" method="POST" enctype="multipart/form-data">
+
+	<table>
+		<tr>
+			<td class="web_form__tr_left">Type:</td>
+			<td class="web_form__tr_right">                
+				<select class="web_form__input" name="type" value="{{ form.type }}">
+					<option value="" {{ form_selected(form.type, "") }}></option>
+					<option value="hg" {{ form_selected(form.type, "hg") }}>Mercurial</option>
+					<option value="git" {{ form_selected(form.type, "git") }}>Git</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="web_form__tr_left">Name:</td>
+			<td class="web_form__tr_right">
+				<div class="inline-middle">
+					<input class="web_form__input" name="vendor_name"
+						value="{{ form.vendor }}" />
+					<span> / </span>
+					<input class="web_form__input" name="project_name"
+						value="{{ form.name }}" />
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" class="web_form__buttons">
+				<button>Create</button>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" class="web_form__result {{ form.result_class }}">
+				{# function("implode", "\n", form.result) | nl2br #}
+			</td>
+		</tr>
+	</table>
+
+</form>
+
+
+{% endblock %}
