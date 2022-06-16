@@ -20,6 +20,7 @@
 		<tr>
 			<td class="web_form__tr_left">Name:</td>
 			<td class="web_form__tr_right">
+				<!--
 				<div class="inline-middle">
 					<input class="web_form__input" name="vendor_name"
 						value="{{ form.vendor }}" />
@@ -27,6 +28,9 @@
 					<input class="web_form__input" name="project_name"
 						value="{{ form.name }}" />
 				</div>
+				-->
+				<input class="web_form__input" name="project_name"
+					value="{{ form.name }}" />
 			</td>
 		</tr>
 		<tr>
@@ -36,7 +40,7 @@
 		</tr>
 		<tr>
 			<td colspan="2" class="web_form__result {{ form.result_class }}">
-				{# function("implode", "\n", form.result) | nl2br #}
+				{{ implode("\n", form.result) | nl2br }}
 			</td>
 		</tr>
 	</table>

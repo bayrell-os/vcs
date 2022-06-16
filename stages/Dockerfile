@@ -1,5 +1,5 @@
 ARG ARCH=
-FROM bayrell/alpine_php_fpm:8.0${ARCH}
+FROM bayrell/virtual_space:0.4
 
 RUN cd ~; \
     apk update; \
@@ -8,6 +8,7 @@ RUN cd ~; \
         git git-gitweb git-daemon patch fcgiwrap perl-cgi; \
     pip3 install mercurial==6.1.2; \
     rm -rf /var/cache/apk/*; \
+    rm -rf /var/www/html; \
 	chmod +x /root/run.sh; \
 	echo 'Ok'
     
