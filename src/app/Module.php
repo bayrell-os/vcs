@@ -116,4 +116,22 @@ class Module
 		$res["twig_opt"] = $twig_opt;
 	}
 	
+	
+	
+	/**
+	 * Create App
+	 */
+	static function createApp()
+	{
+		/* Create app */
+		$app = create_app_instance();
+		
+		/* Add modules */
+		$app->addModule(static::class);
+		
+		/* Run app */
+		$app->init();
+		return $app;
+	}
+	
 }

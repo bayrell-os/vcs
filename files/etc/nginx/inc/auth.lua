@@ -1,43 +1,24 @@
 
-local function check_password(password, hash)
-	
+local function check_password(password, hash1)
 	
 	local ffi = require("ffi")
 	
 	ffi.cdef[[
-	int	bcrypt_checkpass(const char *pass, const char *goodhash);
+	char *crypt(const char *key, const char *salt);
 	]]
 	
-	--local res = ffi.C.bcrypt_checkpass(password, hash)
-	--ngx.log(ngx.STDERR, "Res1=" .. tostring(res))
-	
-	password = "test"
-	hash = "$2y$10$N1/WRnTbsePU5x34iVYy4O52HhRB./o5h4skBI2shVZ57Ufs9lLvq"
+	local res = ffi.C.crypt(password, hash1)
+	local hash2 = ffi.string(res)
 	
 	--[[
-	local bcrypt = require( "bcrypt" )
-	local res = bcrypt.verify( password, hash )
+	ngx.log(ngx.STDERR, "Password=" .. tostring(password))
+	ngx.log(ngx.STDERR, "Hash=" .. tostring(hash))
+	ngx.log(ngx.STDERR, "Res1=" .. tostring(res1))
 	--]]
 	
-	--[[
-	local bcrypt = require( "lua-bcrypt" )
-	local res = bcrypt.equal( password, hash )
-	
-	
-	ngx.log(ngx.STDERR, "Pass=" ..  password)
-	ngx.log(ngx.STDERR, "Hash=" ..  hash)
-	ngx.log(ngx.STDERR, "Res1=" .. tostring(res))
-	--]]
-	--[[
-	local d = bcrypt.digest( password, 10 )
-	local res2 = bcrypt.verify( password, d )
-	ngx.log(ngx.STDERR, d)
-	ngx.log(ngx.STDERR, "Res2=" .. tostring(res2))
-	
-	if res then
+	if hash1 == hash2 then
 		return 1
 	end
-	--]]
 	
 	return 0
 end
@@ -198,7 +179,7 @@ end
 local is_basic_auth = check_basic_auth()
 
 if is_basic_auth ~= 1 then
-	-- show_basic_auth()
+	show_basic_auth()
 end
 
 -- ngx.log(ngx.STDERR, is_basic_auth)
