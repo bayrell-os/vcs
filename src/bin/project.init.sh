@@ -45,6 +45,7 @@ if [ "$PROJECT_TYPE" == "git" ]; then
 	cd /data/repo/git
 	cd $PROJECT_NAME
 	git init --bare
+	git config --file config http.receivepack true
 	exit 0
 	
 fi
