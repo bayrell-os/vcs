@@ -216,6 +216,15 @@ ol, ul {
 .web_form__td_right{
 	text-align: left;
 }
+.web_form__row{
+	padding: 10px;
+}
+.web_form__label{
+	padding-bottom: 5px;
+}
+.web_form__field_error{
+	color: red;
+}
 .web_form__input{
 	width: 100%;
 	padding: 6px 12px;
