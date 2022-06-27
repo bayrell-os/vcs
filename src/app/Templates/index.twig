@@ -1,12 +1,32 @@
 {% extends "@app/layout.twig" %}
 
 {% block content %}
-<p>Links:</p>
-<ul>
-	<li><a href="{{ base_url }}/">Main</a>
-	<li><a href="{{ base_url }}/git/">Git</a>
-	<li><a href="{{ base_url }}/hg/">Mercurial</a>
-	<li><a href="{{ base_url }}/add/">Add project</a>
-	<li><a href="{{ base_url }}/settings/">Settings</a>
-</ul>
+
+<h1>Projects</h1>
+
+<p>
+	<a href="{{ base_url }}/add/">[Add project]</a>
+</p>
+
+<table class="web_table">
+
+<tr>
+	<th></th>
+	<th>Type</th>
+	<th>Name</th>
+	<th></th>
+</tr>
+
+{% for project in projects %}
+<tr>
+	<td>{{ loop.index }}</td>
+	<td>{{ project.type }}</td>
+	<td>{{ project.name }}</td>
+	<td>
+		<a href="{{ base_url }}/{{project.type}}/{{ project.name }}">[Open]</a>
+		<a href="{{ base_url }}/settings?type={{project.type}}&name={{ project.name }}">[Settings]</a>
+	</td>
+</tr>
+{% endfor %}
+
 {% endblock %}

@@ -176,7 +176,7 @@ ol, ul {
 
 /* breadcrumbs*/
 .breadcrumbs{
-	padding-bottom: 20px;
+	margin-bottom: 20px;
 }
 .breadcrumbs__item{
 	display: inline-block;
@@ -249,6 +249,25 @@ ol, ul {
 }
 .web_form .inline-middle select, .web_form .inline-middle input{
 	width: auto;
+}
+
+/* Table */
+.web_table{
+	border-collapse: collapse;
+	border: 1px #ccc solid;
+}
+.web_table td, .web_table th{
+	border: 1px #ccc solid;
+	padding: 10px;
+	text-align: center;
+}
+.web_table tr:hover{
+	background-color: #eee;
+	color: inherit;
+}
+.web_table tr.active{
+	background-color: #337ab7;
+	color: white;
 }
 
 /* Section */
