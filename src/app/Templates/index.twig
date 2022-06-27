@@ -23,8 +23,15 @@
 	<td>{{ project.type }}</td>
 	<td>{{ project.name }}</td>
 	<td>
-		<a href="{{ base_url }}/{{project.type}}/{{ project.name }}">[Open]</a>
-		<a href="{{ base_url }}/settings?type={{project.type}}&name={{ project.name }}">[Settings]</a>
+		<a href="{{ base_url }}/{{project.type}}/{{ project.name }}">
+			[Open]
+		</a>
+		<a href="{{ url_get_add(
+				url('site:project:settings'),
+				{ 'type': project.type, 'name': project.name }
+			) }}">
+			[Settings]
+		</a>
 	</td>
 </tr>
 {% endfor %}

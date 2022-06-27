@@ -46,12 +46,18 @@ class ProjectRoute extends Route
 			"name" => "site:project:add",
 			"method" => [$this, "actionAdd"],
 		]);
+		
+		$route_container->addRoute([
+			"url" => "/settings/",
+			"name" => "site:project:settings",
+			"method" => [$this, "actionSettings"],
+		]);
 	}
 	
 	
 	
 	/**
-	 * Action index
+	 * Project add
 	 */
 	function actionAdd()
 	{
@@ -165,11 +171,38 @@ class ProjectRoute extends Route
 			}
 		}
 		
-		/* Set form context */
+		/* Set context */
 		$this->setContext("form", $form);
 		
-		/* Set result */
+		/* Render */
 		$this->render("@app/add_project.twig");
+	}
+	
+	
+	
+	/**
+	 * Project settings
+	 */
+	function actionSettings()
+	{
+		$project_type = $this->container->get("type");
+		$project_name = $this->container->get("name");
+		
+		/* Set context */
+		$this->setContext("project_type", $project_type);
+		$this->setContext("project_name", $project_name);
+		
+		$this->add_breadcrumb
+		(
+			url("site:project:settings", [
+				"type"=>$project_type,
+				"name"=>$project_name,
+			]),
+			"Settings"
+		);
+		
+		/* Render */
+		$this->render("@app/settings.twig");
 	}
 	
 }
