@@ -2,7 +2,91 @@
 
 {% block content %}
 
+<script src="{{ base_url }}/static/vue.global.prod.js"></script>
+
+
 <h1>Settings {{ project_type }}/{{ project_name }}</h1>
+
+<style>
+.web_form{
+	width: 400px;
+}
+</style>
+
+{% verbatim %}
+<div id="app">
+	
+	<div class="web_form">
+		
+		<div class="web_form__row">
+			<div class="web_form__label">Username</div>
+			<div class="web_group web_group--button_right">
+				<input class="web_form__input" v-model="user_name" />
+				<button class="button button--small" @click="onAdd">Add</button>
+			</div>
+			<div class="web_form__description">Type username or @groupname</div>
+			<div class="web_form__field_error">{{ user_name_error }}</div>
+		</div>
+		
+		<div class="web_form__row">
+			
+			<h2>Users list</h2>
+			
+			<div class="web_list">
+				<div class="web_list__item" v-for="user, index in users">
+					<div class="web_group">
+						<div class="web_group__item web_group__item--full_width">{{ user }}</div>
+						<div class="web_group__item">
+							<button class="button button--small"
+								@click="onDelete(index)">Delete</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+		</div>
+		
+		<div class="web_form__buttons">
+			<button class="button">Save</button>
+		</div>
+		
+		<div class="web_form__error">
+			{{ form_error }}
+		</div>
+		
+	</div>
+	
+</div>
+{% endverbatim %}
+
+<script>
+const { createApp } = Vue
+
+createApp({
+	data() {
+		return {
+			form: {{ json_encode(form) | raw }},
+			user_name: "",
+			user_name_error: "",
+			users: [],
+		}
+	},
+	methods: {
+		
+		onAdd() {
+			this.user_name_error = "";
+			if (this.user_name == "") return;
+			if (this.users.indexOf(this.user_name) != -1) return;
+			this.users.push(this.user_name);
+		},
+		
+		onDelete(index) {
+			this.users.splice(index, 1);
+		},
+		
+	},
+}).mount('#app')
+</script>
 
 
 {% endblock %}

@@ -24,13 +24,14 @@
 	
 	<div class="web_form__row">
 		<div class="web_form__label">Name:</div>
-		<input class="web_form__input" name="project_name" value="{{ form.data.project_name }}" />
-		<div class="web_form__sublabel">Example: vendor/project or vendor/folder/module</div>
+		<input class="web_form__input"
+			name="project_name" value="{{ form.data.project_name }}" />
+		<div class="web_form__description">Example: vendor/project or vendor/folder/module</div>
 		<div class="web_form__field_error">{{ implode("\n", form.error_fields.project_name) | nl2br }}</div>
 	</div>
 	
 	<div class="web_form__buttons">
-		<button>Create</button>
+		<button class="button">Create</button>
 	</div>
 	
 	<div
