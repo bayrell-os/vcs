@@ -9,20 +9,20 @@
 
 <style>
 .web_form{
-	width: 400px;
+	width: 350px;
 }
 </style>
 
 {% verbatim %}
 <div id="app">
 	
-	<div class="web_form">
+	<form class="web_form" method="POST" enctype="multipart/form-data">
 		
 		<div class="web_form__row">
 			<div class="web_form__label">Username</div>
 			<div class="web_group web_group--button_right">
 				<input class="web_form__input" v-model="user_name" />
-				<button class="button button--small" @click="onAdd">Add</button>
+				<button type="button" class="button button--small" @click="onAdd">Add</button>
 			</div>
 			<div class="web_form__description">Type username or @groupname</div>
 			<div class="web_form__field_error">{{ user_name_error }}</div>
@@ -35,11 +35,27 @@
 			<div class="web_list">
 				<div class="web_list__item" v-for="user, index in users">
 					<div class="web_group">
-						<div class="web_group__item web_group__item--full_width">{{ user }}</div>
-						<div class="web_group__item">
-							<button class="button button--small"
-								@click="onDelete(index)">Delete</button>
-						</div>
+						<input
+							class="input web_group__item web_group__item--full_width disable_border--right"
+							v-bind:name="'users[' + index + '][name]'"
+							v-bind:value="user.name"
+						/>
+						<select class="web_group__item select disable_border--right" 
+							v-bind:name="'users[' + index + '][value]'"
+						>
+							<option value="1"
+								v-bind:selected="user.value == 1"
+							>
+								Read
+							</option>
+							<option value="2"
+								v-bind:selected="user.value == 2"
+							>
+								Write
+							</option>
+						</select>
+						<button type="button" class="web_group__item button button--small"
+							@click="onDelete(index)">Delete</button>
 					</div>
 				</div>
 			</div>
@@ -47,14 +63,14 @@
 		</div>
 		
 		<div class="web_form__buttons">
-			<button class="button">Save</button>
+			<button type="submit" class="button">Save</button>
 		</div>
 		
 		<div class="web_form__error">
 			{{ form_error }}
 		</div>
 		
-	</div>
+	</form>
 	
 </div>
 {% endverbatim %}
@@ -68,16 +84,26 @@ createApp({
 			form: {{ json_encode(form) | raw }},
 			user_name: "",
 			user_name_error: "",
-			users: [],
+			users: {{ json_encode(users) | raw }},
 		}
 	},
 	methods: {
 		
 		onAdd() {
+			let user_name = this.user_name;
 			this.user_name_error = "";
+			
 			if (this.user_name == "") return;
-			if (this.users.indexOf(this.user_name) != -1) return;
-			this.users.push(this.user_name);
+			
+			var index = this.users.find(
+				(el) => { return el.name == user_name; }
+			);
+			if (index == -1) return;
+			
+			this.users.push({
+				"name": user_name,
+				"value": 1,
+			});
 		},
 		
 		onDelete(index) {

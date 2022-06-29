@@ -28,6 +28,7 @@
 
 namespace App\Routes;
 
+use App\AppHelper;
 use TinyPHP\RenderContainer;
 use TinyPHP\Route;
 use TinyPHP\RouteContainer;
@@ -116,7 +117,7 @@ class ProjectRoute extends Route
 			}
 			else
 			{
-				if(preg_match('/[^a-z_\-0-9\/]/i', $project_name))
+				if (preg_match('/[^a-z_\-0-9\/]/i', $project_name))
 				{
 					$form["error_fields"]["project_name"][] =
 						"Field 'project_name' must contains only a-z, 0-9, _, -, /";
@@ -134,26 +135,27 @@ class ProjectRoute extends Route
 			/* Create project */
 			if ($form["error_code"] == 0)
 			{
-				$repo_path = "";
 				$cmd = "";
 				$res = "";
+				$repo_path = AppHelper::getProjectPath($type, $project_name);
 				
-				/* Create mercurial project */
-				if ($type == "hg")
+				if ($repo_path)
 				{
-					$repo_path = "/data/repo/hg/" . $project_name;
-					@mkdir($repo_path, 0775, true);
-					$cmd = "/var/www/html/bin/project.init.sh hg " . $project_name;
-					$res = shell_exec($cmd);
-				}
-				
-				/* Create git project */
-				if ($type == "git")
-				{
-					$repo_path = "/data/repo/git/" . $project_name;
-					@mkdir($repo_path, 0775, true);
-					$cmd = "/var/www/html/bin/project.init.sh git " . $project_name;
-					$res = shell_exec($cmd);
+					/* Create mercurial project */
+					if ($type == "hg")
+					{
+						@mkdir($repo_path, 0775, true);
+						$cmd = "/var/www/html/bin/project.init.sh hg " . $project_name;
+						$res = shell_exec($cmd);
+					}
+					
+					/* Create git project */
+					else if ($type == "git")
+					{
+						@mkdir($repo_path, 0775, true);
+						$cmd = "/var/www/html/bin/project.init.sh git " . $project_name;
+						$res = shell_exec($cmd);
+					}
 				}
 				
 				if ($repo_path == "" || !is_dir($repo_path))
@@ -188,6 +190,9 @@ class ProjectRoute extends Route
 		$project_type = $this->container->get("type");
 		$project_name = $this->container->get("name");
 		
+		/* Read users */
+		$users = AppHelper::projectGetUsers($project_type, $project_name);
+		
 		/* Set context */
 		$this->setContext("project_type", $project_type);
 		$this->setContext("project_name", $project_name);
@@ -200,6 +205,33 @@ class ProjectRoute extends Route
 			]),
 			"Settings"
 		);
+		
+		/* Is post ? */
+		if ($this->isPost())
+		{
+			$users = $this->container->post("users", []);
+			AppHelper::projectSaveUsers($project_type, $project_name, $users);
+		}
+		
+		/* Sort users */
+		usort(
+			$users,
+			function ($a, $b)
+			{
+				if ($a["value"] != $b["value"])
+				{
+					return ($a["value"] < $b["value"]) ? -1 : 1;
+				}
+				if ($a["name"] == $b["name"])
+				{
+					return 0;
+				}
+				return ($a["name"] < $b["name"]) ? -1 : 1;
+			}
+		);
+		
+		/* Set context */
+		$this->setContext("users", $users);
 		
 		/* Render */
 		$this->render("@app/settings.twig");

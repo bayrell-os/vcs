@@ -33,9 +33,30 @@ class AppHelper
 {
 	
 	/**
+	 * Validate project name
+	 */
+	static function validateProjectName($project_name)
+	{
+		if (preg_match('/[^a-z_\-0-9\/]/i', $project_name))
+		{
+			return false;
+		}
+		
+		$project_name_arr = explode("/", $project_name);
+		if (count($project_name_arr) > 3)
+		{
+			return false;
+		}
+		
+		return true;
+	}
+	
+	
+	
+	/**
 	 * Check if folder is project of the type
 	 */
-	static function isProject($type, $folder)
+	static function isProjectFolder($type, $folder)
 	{
 		if ($type == "hg")
 		{
@@ -55,21 +76,63 @@ class AppHelper
 	
 	
 	/**
-	 * Get project name
+	 * Parse project full name
 	 */
-	static function getProjectName($type, $folder)
+	static function parseProjectFullName($project_full_name)
 	{
+		$arr = explode($project_full_name, 1);
+		
+		$type = isset($arr[0]) ? $arr[0] : "";
+		$project_name = isset($arr[1]) ? $arr[1] : "";
+		
+		return [$type, $project_name];
+	}
+	
+	
+	
+	/**
+	 * Get project name by path
+	 */
+	static function getProjectNameByPath($type, $folder)
+	{
+		$project_name = "";
 		if ($type == "hg")
 		{
 			if (strpos($folder, "/data/repo/hg/") !== 0) return "";
-			return substr($folder, strlen("/data/repo/hg/"));
+			$project_name = substr($folder, strlen("/data/repo/hg/"));
 		}
 		if ($type == "git")
 		{
 			if (strpos($folder, "/data/repo/git/") !== 0) return "";
-			return substr($folder, strlen("/data/repo/git/"));
+			$project_name = substr($folder, strlen("/data/repo/git/"));
 		}
-		return "";
+		if (!static::validateProjectName($project_name)) return $project_name;
+		return $project_name;
+	}
+	
+	
+	
+	/**
+	 * Get repo path
+	 */
+	static function getRepoPath($type, $project_name)
+	{
+		if (!static::validateProjectName($project_name)) return "";
+		
+		$repo_path = "";
+		
+		if ($type == "hg")
+		{
+			$repo_path = "/data/repo/hg/" . $project_name;
+		}
+		else if ($type == "git")
+		{
+			$repo_path = "/data/repo/git/" . $project_name;
+		}
+		
+		$repo_path = preg_replace("/\/+$/", "", $repo_path);
+		
+		return $repo_path;
 	}
 	
 	
@@ -90,12 +153,12 @@ class AppHelper
 			
 			$path = $folder . "/" . $name;
 			
-			if (static::isProject($type, $path))
+			if (static::isProjectFolder($type, $path))
 			{
 				$projects[] =
 				[
 					"type" => $type,
-					"name" => static::getProjectName($type, $path),
+					"name" => static::getProjectNameByPath($type, $path),
 					"path" => $path,
 				];
 			}
@@ -134,5 +197,52 @@ class AppHelper
 		return $projects;
 	}
 	
+	
+	
+	/**
+	 * Setup users
+	 */
+	static function projectSaveUsers($type, $project_name, $users)
+	{
+		$repo_path = static::getRepoPath($type, $project_name);
+		
+		if ($repo_path == "" || !is_dir($repo_path)) return;
+		
+		/* Get users.json file path */
+		$user_path = $repo_path;
+		if ($type == "git") $user_path .= "/users.json";
+		if ($type == "hg") $user_path .= "/.hg/users.json";
+		$user_path = preg_replace("/\/+$/", "", $user_path);
+		
+		file_put_contents($user_path, json_encode($users));
+	}
+	
+	
+	
+	/**
+	 * Read users for project
+	 */
+	static function projectGetUsers($type, $project_name)
+	{
+		$repo_path = static::getRepoPath($type, $project_name);
+		
+		if ($repo_path == "" || !is_dir($repo_path)) return [];
+		
+		/* Get users.json file path */
+		$user_path = $repo_path;
+		if ($type == "git") $user_path .= "/users.json";
+		if ($type == "hg") $user_path .= "/.hg/users.json";
+		$user_path = preg_replace("/\/+$/", "", $user_path);
+		
+		$users = [];
+		if (file_exists($user_path))
+		{
+			$content = file_get_contents($user_path);
+			$users = json_decode($content, true);
+			if (!$users) $users = [];
+		}
+		
+		return $users;
+	}
 	
 }
