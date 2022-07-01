@@ -28,6 +28,9 @@
 
 namespace App;
 
+use App\Models\Project;
+use App\Models\ProjectUser;
+
 
 class AppHelper
 {
@@ -204,17 +207,28 @@ class AppHelper
 	 */
 	static function projectSaveUsers($type, $project_name, $users)
 	{
-		$repo_path = static::getRepoPath($type, $project_name);
+		$project_id = 0;
+		$project = Project::findOrCreate([
+			"type" => $type,
+			"name" => $project_name,
+		]);
 		
-		if ($repo_path == "" || !is_dir($repo_path)) return;
+		if ($project->isNew())
+		{
+			$project->save();
+		}
 		
-		/* Get users.json file path */
-		$user_path = $repo_path;
-		if ($type == "git") $user_path .= "/users.json";
-		if ($type == "hg") $user_path .= "/.hg/users.json";
-		$user_path = preg_replace("/\/+$/", "", $user_path);
+		$project_id = $project->id;
 		
-		file_put_contents($user_path, json_encode($users));
+		foreach ($users as $user)
+		{
+			$item = ProjectUser::findOrCreate([
+				"project_id" => $project_id,
+				"name" => $user["name"],
+			]);
+			$item->value = $user["value"];
+			$item->save();
+		}
 	}
 	
 	
@@ -224,25 +238,18 @@ class AppHelper
 	 */
 	static function projectGetUsers($type, $project_name)
 	{
-		$repo_path = static::getRepoPath($type, $project_name);
+		$project = Project::selectQuery()
+			->where("type", "=", $type)
+			->where("name", "=", $project_name)
+			->one();
 		
-		if ($repo_path == "" || !is_dir($repo_path)) return [];
+		if (!$project) return [];
+			
+		$items = ProjectUser::selectQuery()
+			->where("project_id", "=", $project->id)
+			->all(true);
 		
-		/* Get users.json file path */
-		$user_path = $repo_path;
-		if ($type == "git") $user_path .= "/users.json";
-		if ($type == "hg") $user_path .= "/.hg/users.json";
-		$user_path = preg_replace("/\/+$/", "", $user_path);
-		
-		$users = [];
-		if (file_exists($user_path))
-		{
-			$content = file_get_contents($user_path);
-			$users = json_decode($content, true);
-			if (!$users) $users = [];
-		}
-		
-		return $users;
+		return $items;
 	}
 	
 }

@@ -31,7 +31,6 @@ namespace App;
 
 class Module
 {
-	
 	/**
 	 * Register hooks
 	 */
@@ -44,6 +43,7 @@ class Module
 		add_chain("method_not_found", static::class, "method_not_found");
 		add_chain("routes", static::class, "routes");
 		add_chain("base_url", static::class, "base_url");
+		add_chain("bus_gateway", static::class, "bus_gateway");
 		add_chain("twig_opt", static::class, "twig_opt");
 	}
 	
@@ -63,6 +63,37 @@ class Module
 	 */
 	static function init_di_defs($res)
 	{
+		$defs = $res->defs;
+		
+		/* Setup default db connection */
+		$defs["db_connection"] = \DI\create(\TinyORM\SQLiteConnection::class);
+		
+		/* Connect to database */
+		$defs["connectToDatabase"] =
+			function ()
+			{
+				$conn = make("db_connection");
+				$conn->database = "/data/db/vcs.db";
+				
+				/* Connect */
+				$conn->connect();
+				
+				if (!$conn->isConnected())
+				{
+					echo "Error: " . $conn->connect_error . "\n";
+					exit(1);
+				}
+				
+				$db_list = app("db_connection_list");
+				$db_list->add("default", $conn);
+				
+				// Set journal_mode wal
+				$conn->query("PRAGMA journal_mode = WAL;");
+				
+				call_chain("connectToDatabase", ["conn"=>$conn]);
+			};
+		
+		$res->defs = $defs;
 	}
 	
 	
@@ -84,7 +115,6 @@ class Module
 		$app->addEntity(\App\Routes\DefaultRoute::class);
 		$app->addEntity(\App\Routes\ProjectRoute::class);
 		$app->addEntity(\App\Routes\SettingsRoute::class);
-		
 	}
 	
 	
@@ -145,6 +175,20 @@ class Module
 	
 	
 	/**
+	 * Bus gateway
+	 */
+	static function bus_gateway($res)
+	{
+		$gateway = $res["project"];
+		if ($gateway == "cloud_os")
+		{
+			$res["gateway"] = "http://" . env("CLOUD_OS_GATEWAY") . "/api/bus/";
+		}
+	}
+	
+	
+	
+	/**
 	 * Create App
 	 */
 	static function createApp()
@@ -154,6 +198,7 @@ class Module
 		
 		/* Add modules */
 		$app->addModule(static::class);
+		$app->addModule(\TinyORM\Module::class);
 		
 		/* Run app */
 		$app->init();

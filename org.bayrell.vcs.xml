@@ -2,7 +2,7 @@
 <template>
 	<uid>org.bayrell.vcs</uid>
 	<name>Version Control System</name>
-	<version>1.0</version>
+	<version>1.0.0</version>
 	<date>2022-05-30T16:54:00+06:00</date>
 	<maintainer>Ildar &lt;ildar@bayrell.org&gt;</maintainer>
 	<marketplace>https://cloud.bayrell.org/</marketplace>
@@ -17,53 +17,34 @@
 	<yaml>
 		<services>
 			<_var_app_name_>
-				<image>docker.io/bayrell/vsc:1.0</image>
+				<image>docker.io/bayrell/vcs:1.0.0</image>
+				<volumes type="array">_var_app_name__data:/data</volumes>
 			</_var_app_name_>
 		</services>
+		<volumes type="map">
+			<_var_app_name__data type="map" />
+		</volumes>
 	</yaml>
-	<variables>
-	</variables>
+	<variables></variables>
+	<admin>
+		<port>81</port>
+		<nginx>
+			location /applications/admin/_var_service_name_/ {
+				proxy_pass http://81._var_service_name_.cloud_network.example/;
+				proxy_set_header X-ROUTE-PREFIX "/applications/admin/_var_service_name_";
+				rewrite /applications/admin/_var_service_name_/(.*) /$1 break;
+				include proxy_params;
+				proxy_http_version 1.1;
+				proxy_set_header Upgrade $http_upgrade;
+				proxy_set_header Connection "upgrade";
+				break;
+			}
+		</nginx>
+	</admin>
 	<modificators>
 		<li>org.bayrell.modificator.cloud_os</li>
 		<li>org.bayrell.modificator.deploy_hostname</li>
 	</modificators>
-	<use>domain</use>
-	<route>
-		<jwt_auth>true</jwt_auth>
-		<location>_var_route_prefix_</location>
-		<prefix>_var_route_prefix_</prefix>
-		<nginx>
-			rewrite _var_route_prefix_/(.*) /$1 break;
-		</nginx>
-	</route>
-	<route>
-		<jwt_auth>true</jwt_auth>
-		<base_auth>true</base_auth>
-		<location>_var_route_prefix_/hg</location>
-		<prefix>_var_route_prefix_</prefix>
-		<nginx>
-			gzip off;
-			rewrite _var_route_prefix_/(.*) /$1 break;
-		</nginx>
-	</route>
-	<route>
-		<jwt_auth>true</jwt_auth>
-		<base_auth>true</base_auth>
-		<location>_var_route_prefix_/git</location>
-		<prefix>_var_route_prefix_</prefix>
-		<nginx>
-			gzip off;
-			rewrite _var_route_prefix_/(.*) /$1 break;
-		</nginx>
-	</route>
-	<variables>
-		<variable>
-			<name>_var_route_prefix_</name>
-			<label>Route prefix</label>
-			<default>/vcs</default>
-			<type>string</type>
-		</variable>
-	</variables>
 	<patch>
 		<name>Template patch</name>
 		<operations></operations>

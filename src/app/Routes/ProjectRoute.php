@@ -199,10 +199,13 @@ class ProjectRoute extends Route
 		
 		$this->add_breadcrumb
 		(
-			url("site:project:settings", [
-				"type"=>$project_type,
-				"name"=>$project_name,
-			]),
+			static::url_get_add(
+				static::url("site:project:settings"),
+				[
+					"type"=>$project_type,
+					"name"=>$project_name,
+				]
+			),
 			"Settings"
 		);
 		

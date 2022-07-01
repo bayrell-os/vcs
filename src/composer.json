@@ -3,7 +3,9 @@
 		"files": ["modules/core/src/lib.php"],
 		"psr-4": {
 			"App\\": "app",
-			"TinyPHP\\": "modules/core/src"
+			"App\\Admin\\": "admin",
+			"TinyPHP\\": "modules/core/src",
+			"TinyORM\\": "modules/orm/src"
 		}
 	},
     "require": {
