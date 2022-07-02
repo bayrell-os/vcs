@@ -4,6 +4,12 @@
 
 <h1>Add project</h1>
 
+{% if not auth.isAdmin() %}
+
+You have no permission
+
+{% else %}
+
 <style>
 .web_form{
 	width: 500px;
@@ -42,5 +48,6 @@
 	
 </form>
 
+{% endif %}
 
 {% endblock %}

@@ -5,7 +5,7 @@ RUN cd ~; \
     apk update; \
 	apk upgrade; \
     apk add py3-pip python3-dev uwsgi uwsgi-python3 uwsgi-http \
-        git git-gitweb git-daemon patch fcgiwrap perl-cgi; \
+        git git-gitweb git-daemon patch fcgiwrap perl-cgi sqlite php8-pdo_sqlite; \
     pip3 install mercurial==6.1.2; \
     rm -rf /var/cache/apk/*; \
     rm -rf /var/www/html; \

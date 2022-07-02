@@ -29,6 +29,8 @@
 namespace App\Routes;
 
 use App\AppHelper;
+use App\Models\Project;
+use App\Models\ProjectUser;
 use TinyPHP\RenderContainer;
 use TinyPHP\Route;
 use TinyPHP\RouteContainer;
@@ -56,8 +58,39 @@ class DefaultRoute extends Route
 	 */
 	function actionIndex()
 	{
+		$auth = app(\TinyPHP\Auth::class);
+		
 		/* Get projects list */
-		$projects = AppHelper::getProjectsList();
+		$projects = [];
+		
+		if (!$auth->isAdmin())
+		{
+			$groups = array_map(
+				function ($item){ return "@" . $item; },
+				$auth->getGroups()
+			);
+			$names = [ $auth->getLogin(), ...$groups ];
+			
+			$projects = ProjectUser::selectQuery()
+				->fields(
+					"project.type",
+					"project.name",
+					"t.value"
+				)
+				->where("t.name", "=", $names)
+				->where("project.is_deleted", "=", 0)
+				->innerJoin(
+					Project::getTableName(),
+					"project",
+					"project.id = t.project_id"
+				)
+				->all(true)
+			;
+		}
+		else
+		{
+			$projects = AppHelper::getProjectsList();
+		}
 		
 		/* Set projects context */
 		$this->setContext("projects", $projects);

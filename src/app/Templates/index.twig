@@ -4,9 +4,11 @@
 
 <h1>Projects</h1>
 
+{% if auth.isAdmin() %}
 <p>
 	<a href="{{ base_url }}/add/">[Add project]</a>
 </p>
+{% endif %}
 
 <table class="web_table">
 
@@ -26,12 +28,14 @@
 		<a href="{{ base_url }}/{{project.type}}/{{ project.name }}">
 			[Open]
 		</a>
+		{% if auth.isAdmin() %}
 		<a href="{{ url_get_add(
 				url('site:project:settings'),
 				{ 'type': project.type, 'name': project.name }
 			) }}">
 			[Settings]
 		</a>
+		{% endif %}
 	</td>
 </tr>
 {% endfor %}

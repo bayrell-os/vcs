@@ -13,6 +13,12 @@
 }
 </style>
 
+{% if not auth.isAdmin() %}
+
+You have no permission
+
+{% else %}
+
 {% verbatim %}
 <div id="app">
 	
@@ -114,5 +120,6 @@ createApp({
 }).mount('#app')
 </script>
 
+{% endif %}
 
 {% endblock %}

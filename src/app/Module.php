@@ -65,6 +65,9 @@ class Module
 	{
 		$defs = $res->defs;
 		
+		/* Setup auth */
+		$defs[\TinyPHP\Auth::class] = \DI\create(\App\Auth::class);
+		
 		/* Setup default db connection */
 		$defs["db_connection"] = \DI\create(\TinyORM\SQLiteConnection::class);
 		
@@ -124,10 +127,35 @@ class Module
 	 */
 	static function request_before($res)
 	{
-		$res->container->add_breadcrumb(
+		$res->container->add_breadcrumb
+		(
 			$res->container->base_url . "/",
 			"Main"
 		);
+		
+		/* Parse JWT */
+		$cloud_jwt = $res->container->cookie("cloud_jwt");
+		$jwt = \App\JWT::create($cloud_jwt, false);
+		
+		/* Setup true because jwt sign checks in nginx lua script */
+		$jwt->is_valid = true;
+		
+		/* Setup Auth */
+		$auth = app(\TinyPHP\Auth::class);
+		$auth->init([
+			"jwt" => $jwt,
+		]);
+		
+		/* Setup context */
+		$res->container->setContext("auth", $auth);
+		
+		$uri = $res->container->request->getRequestUri();
+		
+		/* Redirect if not auth */
+		if (!$auth->isAuth())
+		{
+			$res->container->redirect("/login?r=" . urlencode($uri));
+		}
 	}
 	
 	

@@ -62,8 +62,10 @@ class ProjectRoute extends Route
 	 */
 	function actionAdd()
 	{
-		$this->add_breadcrumb(
-			url("site:project:add"),
+		$auth = app(\TinyPHP\Auth::class);
+		
+		$this->container->add_breadcrumb(
+			static::url("site:project:add"),
 			"Project add"
 		);
 		
@@ -81,7 +83,7 @@ class ProjectRoute extends Route
 		];
 		
 		/* Is post ? */
-		if ($this->isPost())
+		if ($this->container->isPost() && $auth->isAdmin())
 		{
 			$type = trim($this->container->post("type"));
 			$project_name = trim($this->container->post("project_name"));
@@ -187,6 +189,8 @@ class ProjectRoute extends Route
 	 */
 	function actionSettings()
 	{
+		$auth = app(\TinyPHP\Auth::class);
+		
 		$project_type = $this->container->get("type");
 		$project_name = $this->container->get("name");
 		
@@ -197,7 +201,7 @@ class ProjectRoute extends Route
 		$this->setContext("project_type", $project_type);
 		$this->setContext("project_name", $project_name);
 		
-		$this->add_breadcrumb
+		$this->container->add_breadcrumb
 		(
 			static::url_get_add(
 				static::url("site:project:settings"),
@@ -210,7 +214,7 @@ class ProjectRoute extends Route
 		);
 		
 		/* Is post ? */
-		if ($this->isPost())
+		if ($this->container->isPost() && $auth->isAdmin())
 		{
 			$users = $this->container->post("users", []);
 			AppHelper::projectSaveUsers($project_type, $project_name, $users);
