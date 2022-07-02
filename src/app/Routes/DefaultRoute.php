@@ -69,7 +69,7 @@ class DefaultRoute extends Route
 				function ($item){ return "@" . $item; },
 				$auth->getGroups()
 			);
-			$names = [ $auth->getLogin(), ...$groups ];
+			$names = [ $auth->getLogin(), "@all", ...$groups ];
 			
 			$projects = ProjectUser::selectQuery()
 				->fields(
@@ -86,6 +86,31 @@ class DefaultRoute extends Route
 				)
 				->all(true)
 			;
+			
+			/* Get full name */
+			$projects = array_map(
+				function($item)
+				{
+					$item["full_name"] = $item["type"] . "/" . $item["name"];
+					return $item;
+				},
+				$projects
+			);
+			
+			/* Remove duplicates */
+			$projects = array_filter(
+				$projects,
+				function($item, $index) use ($projects)
+				{
+					$item_name = $item["name"];
+					$found_index = array_search(
+						$item["type"] . "/" . $item["name"],
+						array_column($projects, 'full_name')
+					);
+					return $index <= $found_index;
+				},
+				ARRAY_FILTER_USE_BOTH
+			);
 		}
 		else
 		{

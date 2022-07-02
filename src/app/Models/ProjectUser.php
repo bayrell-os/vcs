@@ -63,6 +63,8 @@ class ProjectUser extends Model
 			"project_id" => [],
 			"name" => [],
 			"value" => [],
+			"item_id" => [],
+			"item_type" => [],
 		];
 	}
 	

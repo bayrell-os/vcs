@@ -29,6 +29,7 @@
 namespace App\Routes;
 
 use App\AppHelper;
+use App\Models\Project;
 use TinyPHP\RenderContainer;
 use TinyPHP\Route;
 use TinyPHP\RouteContainer;
@@ -194,9 +195,6 @@ class ProjectRoute extends Route
 		$project_type = $this->container->get("type");
 		$project_name = $this->container->get("name");
 		
-		/* Read users */
-		$users = AppHelper::projectGetUsers($project_type, $project_name);
-		
 		/* Set context */
 		$this->setContext("project_type", $project_type);
 		$this->setContext("project_name", $project_name);
@@ -217,8 +215,11 @@ class ProjectRoute extends Route
 		if ($this->container->isPost() && $auth->isAdmin())
 		{
 			$users = $this->container->post("users", []);
-			AppHelper::projectSaveUsers($project_type, $project_name, $users);
+			Project::saveUsers($project_type, $project_name, $users);
 		}
+		
+		/* Read users */
+		$users = Project::getUsers($project_type, $project_name);
 		
 		/* Sort users */
 		usort(
