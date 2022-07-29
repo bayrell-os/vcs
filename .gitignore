@@ -6,7 +6,7 @@
 # Backend
 src/var
 src/vendor
-src/admin/Templates/adminer/*
+src/admin/Templates/adminer
 
 # Frontend
 src/var

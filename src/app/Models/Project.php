@@ -106,6 +106,225 @@ class Project extends Model
 	
 	
 	/**
+	 * Validate project name
+	 */
+	static function validateProjectName($project_name)
+	{
+		if (preg_match('/[^a-z_\-0-9\/]/i', $project_name))
+		{
+			return false;
+		}
+		
+		$project_name_arr = explode("/", $project_name);
+		if (count($project_name_arr) > 3)
+		{
+			return false;
+		}
+		
+		return true;
+	}
+	
+	
+	
+	/**
+	 * Parse project full name
+	 */
+	static function parseProjectFullName($project_full_name)
+	{
+		$arr = explode($project_full_name, 1);
+		
+		$type = isset($arr[0]) ? $arr[0] : "";
+		$project_name = isset($arr[1]) ? $arr[1] : "";
+		
+		return [$type, $project_name];
+	}
+	
+	
+	
+	/**
+	 * Get repo path
+	 */
+	static function getRepoPath($type, $project_name)
+	{
+		if (!static::validateProjectName($project_name)) return "";
+		
+		$repo_path = "";
+		
+		if ($type == "hg")
+		{
+			$repo_path = "/data/repo/hg/" . $project_name;
+		}
+		else if ($type == "git")
+		{
+			$repo_path = "/data/repo/git/" . $project_name;
+		}
+		
+		$repo_path = preg_replace("/\/+$/", "", $repo_path);
+		
+		return $repo_path;
+	}
+	
+	
+	
+	/**
+	 * Check if folder is repo path
+	 */
+	static function getProjectTypeByRepoPath($repo_path)
+	{
+		$type = "";
+		if (strpos($repo_path, "/data/repo/hg/") === 0)
+		{
+			$type = "hg";
+		}
+		else if (strpos($repo_path, "/data/repo/git/") === 0)
+		{
+			$type = "git";
+		}
+		return $type;
+	}
+	
+	
+	
+	/**
+	 * Check if folder is repo path
+	 */
+	static function isRepoPath($repo_path)
+	{
+		$type = static::getProjectTypeByRepoPath($repo_path);
+		if ($type == "hg")
+		{
+			if (!is_dir($repo_path)) return false;
+			if (!is_dir($repo_path . "/.hg")) return false;
+			return true;
+		}
+		if ($type == "git")
+		{
+			if (!is_dir($repo_path)) return false;
+			if (!file_exists($repo_path . "/config")) return false;
+			return true;
+		}
+		return false;
+	}
+	
+	
+	
+	/**
+	 * Get project name by path
+	 */
+	static function getProjectNameByRepoPath($repo_path)
+	{
+		$project_name = "";
+		if (strpos($repo_path, "/data/repo/hg/") === 0)
+		{
+			$project_name = substr($repo_path, strlen("/data/repo/hg/"));
+		}
+		else if (strpos($repo_path, "/data/repo/git/") === 0)
+		{
+			$project_name = substr($repo_path, strlen("/data/repo/git/"));
+		}
+		if (!static::validateProjectName($project_name)) return "";
+		return $project_name;
+	}
+	
+	
+	
+	/**
+	 * Scan projects in folder
+	 */
+	static function scanProjects($type, $folder, $level)
+	{
+		if ($level >= 3) return [];
+		
+		$projects = [];
+		
+		$res = scandir($folder, SCANDIR_SORT_ASCENDING);
+		foreach ($res as $name)
+		{
+			if ($name == "." or $name == "..") continue;
+			
+			$repo_path = $folder . "/" . $name;
+			
+			if (static::isRepoPath($repo_path))
+			{
+				$project_name = static::getProjectNameByRepoPath($repo_path);
+				$projects[] =
+				[
+					"type" => $type,
+					"name" => $project_name,
+					"path" => $repo_path,
+				];
+			}
+			else
+			{
+				$projects = array_merge(
+					$projects,
+					static::scanProjects($type, $repo_path, $level + 1)
+				);
+			}
+		}
+		
+		return $projects;
+	}
+	
+	
+	
+	/**
+	 * Returns project list
+	 */
+	static function getProjectsList()
+	{
+		$projects = [];
+		$projects = array_merge($projects, static::scanProjects("hg", "/data/repo/hg", 0));
+		$projects = array_merge($projects, static::scanProjects("git", "/data/repo/git", 0));
+		
+		usort(
+			$projects,
+			function ($a, $b)
+			{
+				if ($a["name"] == $b["name"])
+				{
+					return 0;
+				}
+				return ($a["name"] < $b["name"]) ? -1 : 1;
+			}
+		);
+		
+		return $projects;
+	}
+	
+	
+	
+	/**
+	 * Create project
+	 */
+	static function createProject($type, $project_name)
+	{
+		$repo_path = static::getRepoPath($type, $project_name);
+		
+		if ($repo_path)
+		{
+			/* Create mercurial project */
+			if ($type == "hg" || $type == "git")
+			{
+				@mkdir($repo_path, 0775, true);
+				$cmd = "/var/www/html/bin/project.init.sh " . $type . " " . $project_name;
+				$res = shell_exec($cmd);
+				
+				$project = static::findOrCreate([
+					"type" => $type,
+					"name" => $project_name,
+				]);
+				$project->is_deleted = 0;
+				$project->save();
+			}
+		}
+		
+		return $repo_path;
+	}
+	
+	
+	
+	/**
 	 * Setup users
 	 */
 	static function saveUsers($type, $project_name, $new_users)

@@ -1,0 +1,46 @@
+{% extends "@app_admin/layout.twig" %}
+
+{% block content %}
+
+<h1>Add project</h1>
+
+<style>
+.web_form{
+	width: 500px;
+}
+</style>
+
+<form class="web_form" method="POST" enctype="multipart/form-data">
+	
+	<div class="web_form__row">
+		<div class="web_form__label">Type:</div>
+		<select class="web_form__input" name="type" value="{{ form.type }}">
+			<option value="" {{ form_selected(form.data.type, "") }}></option>
+			<option value="hg" {{ form_selected(form.data.type, "hg") }}>Mercurial</option>
+			<option value="git" {{ form_selected(form.data.type, "git") }}>Git</option>
+		</select>
+		<div class="web_form__field_error">{{ implode("\n", form.error_fields.type) | nl2br }}</div>
+	</div>
+	
+	<div class="web_form__row">
+		<div class="web_form__label">Name:</div>
+		<input class="web_form__input"
+			name="project_name" value="{{ form.data.project_name }}" />
+		<div class="web_form__description">Example: vendor/project or vendor/folder/module</div>
+		<div class="web_form__field_error">{{ implode("\n", form.error_fields.project_name) | nl2br }}</div>
+	</div>
+	
+	<div class="web_form__buttons">
+		<button class="button">Create</button>
+	</div>
+	
+	<div
+		class="web_form__result {{ form.error_code > 0 ? 'web_form__result--success' : 'web_form__result--error' }}"
+	>
+		{{ implode("\n", form.result) | nl2br }}
+	</div>
+	
+</form>
+
+
+{% endblock %}

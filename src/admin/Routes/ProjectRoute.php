@@ -26,16 +26,16 @@
  * SOFTWARE.
  */
 
-namespace App\Routes;
+namespace App\Admin\Routes;
 
-use App\AppHelper;
 use App\Models\Project;
+use App\Routes\ProjectRoute as AppProjectRoute;
 use TinyPHP\RenderContainer;
 use TinyPHP\Route;
 use TinyPHP\RouteContainer;
 
 
-class ProjectRoute extends Route
+class ProjectRoute extends AppProjectRoute
 {
 	
 	/**
@@ -44,13 +44,19 @@ class ProjectRoute extends Route
 	function routes(RouteContainer $route_container)
 	{
 		$route_container->addRoute([
-			"url" => "/add/",
+			"url" => "/projects/",
+			"name" => "site:project:index",
+			"method" => [$this, "actionIndex"],
+		]);
+		
+		$route_container->addRoute([
+			"url" => "/projects/add/",
 			"name" => "site:project:add",
 			"method" => [$this, "actionAdd"],
 		]);
 		
 		$route_container->addRoute([
-			"url" => "/settings/",
+			"url" => "/projects/settings/",
 			"name" => "site:project:settings",
 			"method" => [$this, "actionSettings"],
 		]);
@@ -59,98 +65,36 @@ class ProjectRoute extends Route
 	
 	
 	/**
-	 * Post project add
+	 * Project index
 	 */
-	function postProjectAdd($form)
+	function actionIndex()
 	{
-		$type = trim($this->container->post("type"));
-		$project_name = trim($this->container->post("project_name"));
+		$this->container->add_breadcrumb(
+			static::url("site:project:index"),
+			"Projects"
+		);
 		
-		/* Remove slash */
-		$project_name = preg_replace("/\/+$/", "", $project_name);
-		$project_name = preg_replace("/^\/+/", "", $project_name);
-		$project_name = preg_replace("/\/+/", "/", $project_name);
+		/* Get projects list */
+		$projects = Project::getProjectsList();
 		
-		$form["data"]["type"] = $type;
-		$form["data"]["project_name"] = $project_name;
+		/* Set projects context */
+		$this->setContext("projects", $projects);
 		
-		/* Check type */
-		if ($type == "")
-		{
-			$form["error_fields"]["type"][] = "Field 'type' must not be empty";
-			$form["error_code"] = -1;
-		}
-		else
-		{
-			if (!in_array($type, ["hg", "git"]))
-			{
-				$form["error_fields"]["type"][] = "Field 'type' must be 'hg' or 'git'";
-				$form["error_code"] = -1;
-			}
-		}
-		
-		/* Check project name */
-		if ($project_name == "")
-		{
-			$form["error_fields"]["project_name"][] = "Field 'project_name' must not be empty";
-			$form["error_code"] = -1;
-		}
-		else
-		{
-			if (preg_match('/[^a-z_\-0-9\/]/i', $project_name))
-			{
-				$form["error_fields"]["project_name"][] =
-					"Field 'project_name' must contains only a-z, 0-9, _, -, /";
-				$form["error_code"] = -1;
-			}
-			
-			$project_name_arr = explode("/", $project_name);
-			if (count($project_name_arr) > 3)
-			{
-				$form["error_fields"]["project_name"][] = "Count of '/' must be less than 2";
-				$form["error_code"] = -1;
-			}
-		}
-		
-		$project = Project::findItem([
-			"name" => $project_name,
-		]);
-		if ($project)
-		{
-			$form["error_fields"]["project_name"][] =
-				"Project is already exists";
-			$form["error_code"] = -1;
-		}
-		
-		if ($form["error_code"] != 0) return $form;
-		
-		/* Create project */
-		$repo_path = Project::createProject($type, $project_name);
-		
-		if ($repo_path == "" || !is_dir($repo_path))
-		{
-			$form["error_code"] = -1;
-			$form["result"][] = "Error create project folder";
-		}
-		
-		/* If is ok */
-		if ($form["error_code"] == 0)
-		{
-			$form["error_code"] = 1;
-			$form["result"][] = "Ok";
-		}
-		
-		return $form;
+		/* Set result */
+		$this->render("@app_admin/projects/index.twig");
 	}
 	
-	
+	 
 	
 	/**
 	 * Project add
 	 */
 	function actionAdd()
 	{
-		$auth = app(\TinyPHP\Auth::class);
+		$this->container->add_breadcrumb(
+			static::url("site:project:index"),
+			"Projects"
+		);
 		
 		$this->container->add_breadcrumb(
 			static::url("site:project:add"),
@@ -171,7 +115,7 @@ class ProjectRoute extends Route
 		];
 		
 		/* Is post ? */
-		if ($this->container->isPost() && $auth->isAdmin())
+		if ($this->container->isPost())
 		{
 			$form = $this->postProjectAdd($form);
 		}
@@ -180,7 +124,7 @@ class ProjectRoute extends Route
 		$this->setContext("form", $form);
 		
 		/* Render */
-		$this->render("@app/add_project.twig");
+		$this->render("@app_admin/projects/add.twig");
 	}
 	
 	
@@ -190,7 +134,10 @@ class ProjectRoute extends Route
 	 */
 	function actionSettings()
 	{
-		$auth = app(\TinyPHP\Auth::class);
+		$this->container->add_breadcrumb(
+			static::url("site:project:index"),
+			"Projects"
+		);
 		
 		$project_type = $this->container->get("type");
 		$project_name = $this->container->get("name");
@@ -212,7 +159,7 @@ class ProjectRoute extends Route
 		);
 		
 		/* Is post ? */
-		if ($this->container->isPost() && $auth->isAdmin())
+		if ($this->container->isPost())
 		{
 			$users = $this->container->post("users", []);
 			Project::saveUsers($project_type, $project_name, $users);
@@ -242,7 +189,7 @@ class ProjectRoute extends Route
 		$this->setContext("users", $users);
 		
 		/* Render */
-		$this->render("@app/settings.twig");
+		$this->render("@app_admin/projects/settings.twig");
 	}
 	
 }

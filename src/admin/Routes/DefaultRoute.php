@@ -26,10 +26,8 @@
  * SOFTWARE.
  */
 
-namespace App\Routes;
+namespace App\Admin\Routes;
 
-use App\Models\Project;
-use App\Models\ProjectUser;
 use TinyPHP\RenderContainer;
 use TinyPHP\Route;
 use TinyPHP\RouteContainer;
@@ -57,71 +55,8 @@ class DefaultRoute extends Route
 	 */
 	function actionIndex()
 	{
-		$auth = app(\TinyPHP\Auth::class);
-		
-		/* Get projects list */
-		$projects = [];
-		
-		if (!$auth->isAdmin())
-		{
-			$groups = array_map(
-				function ($item){ return "@" . $item; },
-				$auth->getGroups()
-			);
-			$names = [ $auth->getLogin(), "@all", ...$groups ];
-			
-			$projects = ProjectUser::selectQuery()
-				->fields(
-					"project.type",
-					"project.name",
-					"t.value"
-				)
-				->where("t.name", "=", $names)
-				->where("project.is_deleted", "=", 0)
-				->innerJoin(
-					Project::getTableName(),
-					"project",
-					"project.id = t.project_id"
-				)
-				->orderBy("project.name", "asc")
-				->all(true)
-			;
-			
-			/* Get full name */
-			$projects = array_map(
-				function($item)
-				{
-					$item["full_name"] = $item["type"] . "/" . $item["name"];
-					return $item;
-				},
-				$projects
-			);
-			
-			/* Remove duplicates */
-			$projects = array_filter(
-				$projects,
-				function($item, $index) use ($projects)
-				{
-					$item_name = $item["name"];
-					$found_index = array_search(
-						$item["type"] . "/" . $item["name"],
-						array_column($projects, 'full_name')
-					);
-					return $index <= $found_index;
-				},
-				ARRAY_FILTER_USE_BOTH
-			);
-		}
-		else
-		{
-			$projects = Project::getProjectsList();
-		}
-		
-		/* Set projects context */
-		$this->setContext("projects", $projects);
-		
 		/* Set result */
-		$this->render("@app/index.twig");
+		$this->render("@app_admin/index.twig");
 	}
-	
+    
 }

@@ -50,6 +50,8 @@ class Module extends \App\Module
 	{
 		$app = app();
 		$app->addEntity(\App\Admin\Console\UsersUpdate::class);
+		$app->addEntity(\App\Admin\Routes\DefaultRoute::class);
+		$app->addEntity(\App\Admin\Routes\ProjectRoute::class);
 		$app->addEntity(\App\Admin\Routes\DatabaseRoute::class);
 	}
 	

@@ -11,5 +11,7 @@ function adminer_object() {
 }
 
 //set_include_path( __DIR__ . '/adminer' );
-include __DIR__ . '/adminer.php';
-//include __DIR__ . '/adminer/index.php';
+include __DIR__ . '/adminer-4.8.2-fix.php';
+
+//set_include_path(".:/usr/share/php8:/var/www/html/admin/Templates/adminer/adminer");
+//include __DIR__ . '/adminer/adminer/index.php';
