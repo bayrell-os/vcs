@@ -138,7 +138,7 @@ class Module
 		$jwt = \App\JWT::create($cloud_jwt, false);
 		
 		/* Setup true because jwt sign checks in nginx lua script */
-		$jwt->is_valid = true;
+		if ($jwt) $jwt->is_valid = true;
 		
 		/* Setup Auth */
 		$auth = app(\TinyPHP\Auth::class);
