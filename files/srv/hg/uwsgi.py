@@ -10,8 +10,8 @@ hgweb_config = "/srv/hg/hgweb.config"
 db_con = sqlite3.connect('/data/db/vcs.db')
 db_con.row_factory = sqlite3.Row
 
-debug = True
-    
+debug = False
+
 """
     Return route prefix
 """
@@ -43,8 +43,8 @@ def get_app_uri(env):
 def get_user_login(env):
    
     user_login = ""
-    if 'HTTP_JWT_AUTH_USER' in env:
-        user_login = env['HTTP_JWT_AUTH_USER']
+    if 'HTTP_CLOUD_AUTH_USER' in env:
+        user_login = env['HTTP_CLOUD_AUTH_USER']
     
     return user_login
 
@@ -247,6 +247,7 @@ def application(env, start_response):
         print ("user_login", user_login)
         print ("project_name", project_name)
         print ("access_level", access_level)
+        print (env)
     
     if access_level == 0:
         return out_deny(env, start_response)
