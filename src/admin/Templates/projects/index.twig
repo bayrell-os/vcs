@@ -20,10 +20,10 @@
 {% for project in projects %}
 <tr>
 	<td>{{ loop.index }}</td>
+	<td>{{ project.name }}</td>
 	<td>{{ project.type == "hg" ? "Mercurial" : (
 		project.type == "git" ? "Git" : ""
 	) }}</td>
-	<td>{{ project.name }}</td>
 	<td>
 		<a href="{{ url_get_add(
 				url('site:project:settings'),

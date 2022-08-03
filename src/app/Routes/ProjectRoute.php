@@ -112,25 +112,23 @@ class ProjectRoute extends Route
 			}
 		}
 		
-		$project = Project::findItem([
-			"name" => $project_name,
-		]);
-		if ($project)
-		{
-			$form["error_fields"]["project_name"][] =
-				"Project is already exists";
-			$form["error_code"] = -1;
-		}
-		
 		if ($form["error_code"] != 0) return $form;
 		
 		/* Create project */
-		$repo_path = Project::createProject($type, $project_name);
-		
-		if ($repo_path == "" || !is_dir($repo_path))
+		try
 		{
+			$repo_path = Project::createProject($type, $project_name);
+			if ($repo_path == "" || !is_dir($repo_path))
+			{
+				$form["error_code"] = -1;
+				$form["result"][] = "Error create project folder";
+			}
+		}
+		catch (\Exception $e)
+		{
+			$repo_path = "";
 			$form["error_code"] = -1;
-			$form["result"][] = "Error create project folder";
+			$form["result"][] = $e->getMessage();
 		}
 		
 		/* If is ok */

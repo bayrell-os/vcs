@@ -32,6 +32,7 @@ use App\Models\Project;
 use App\Models\ProjectUser;
 use App\Models\User;
 use App\Models\UserGroup;
+use TinyPHP\Utils;
 use TinyORM\Model;
 
 
@@ -237,6 +238,9 @@ class Project extends Model
 		
 		$projects = [];
 		
+		if (!file_exists($folder)) return [];
+		if (!is_dir($folder)) return [];
+		
 		$res = scandir($folder, SCANDIR_SORT_ASCENDING);
 		foreach ($res as $name)
 		{
@@ -273,7 +277,33 @@ class Project extends Model
 	 */
 	static function getProjectsList()
 	{
-		$projects = [];
+		$projects = static::selectQuery()
+			->fields(
+				"type",
+				"name"
+			)
+			->where("is_deleted", "=", 0)
+			->orderBy("name", "asc")
+			->all(true)
+		;
+		
+		$projects = array_map
+		(
+			function($item)
+			{
+				return [
+					"type" => $item["type"],
+					"name" => $item["name"],
+					"path" => (
+						$item["type"] == "git" ? ("/data/repo/git/" . $item["name"]) : (
+						$item["type"] == "hg" ? ("/data/repo/hg/" . $item["name"]) :
+						""
+					)),
+				];
+			},
+			$projects
+		);
+		
 		$projects = array_merge($projects, static::scanProjects("hg", "/data/repo/hg", 0));
 		$projects = array_merge($projects, static::scanProjects("git", "/data/repo/git", 0));
 		
@@ -289,7 +319,19 @@ class Project extends Model
 			}
 		);
 		
-		return $projects;
+		$res = [];
+		foreach ($projects as $row)
+		{
+			$index = Utils::array_find_index($res, function ($item) use ($row){
+				return $item["path"] == $row["path"];
+			});
+			if ($index === null)
+			{
+				$res[] = $row;
+			}
+		}
+		
+		return $res;
 	}
 	
 	
@@ -299,7 +341,34 @@ class Project extends Model
 	 */
 	static function createProject($type, $project_name)
 	{
+		$project_name = preg_replace("/\/+$/", "", $project_name);
+		$project_name = preg_replace("/^\/+/", "", $project_name);
+		$project_name = preg_replace("/\/+/", "/", $project_name);
+		
 		$repo_path = static::getRepoPath($type, $project_name);
+		
+		$project_name_arr = explode("/", $project_name);
+		for ($i=1; $i<=count($project_name_arr); $i++)
+		{
+			$sub_project_name = implode("/", array_slice($project_name_arr, 0, $i));
+			$project = static::findItem([
+				"name" => $sub_project_name,
+			]);
+			if ($project)
+			{
+				throw new \Exception("Project is already exists");
+			}
+			if (static::isRepoPath("/data/repo/hg/" . $sub_project_name))
+			{
+				throw new \Exception("Can't create project in other project");
+				return "";
+			}
+			if (static::isRepoPath("/data/repo/git/" . $sub_project_name))
+			{
+				throw new \Exception("Can't create project in other project");
+				return "";
+			}
+		}
 		
 		if ($repo_path)
 		{

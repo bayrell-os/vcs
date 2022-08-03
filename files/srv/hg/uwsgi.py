@@ -10,7 +10,7 @@ hgweb_config = "/srv/hg/hgweb.config"
 db_con = sqlite3.connect('/data/db/vcs.db')
 db_con.row_factory = sqlite3.Row
 
-debug = False
+debug = True
 
 """
     Return route prefix
@@ -68,22 +68,19 @@ def out_deny(env, start_response):
 """
     Returns current project name
 """
-def get_project_name(env):
+def find_project(project_name):
     
-    app_uri = get_app_uri(env)
-    app_uri_arr = app_uri.split("/")
-    
-    if len(app_uri_arr) == 0:
+    if len(project_name) == 0:
         return ""
     
-    if app_uri_arr[0] == "":
-        app_uri_arr = app_uri_arr[1:]
+    project_name_arr = project_name.split("/")
     
-    for i in range(0, min(3, len(app_uri_arr))):
-        
-        project_name = "/".join( app_uri_arr[0: i + 1] )
-        project = find_project(project_name)
-        
+    if project_name_arr[0] == "":
+        project_name_arr = project_name_arr[1:]
+    
+    for i in range(min(3, len(project_name_arr)), 0, -1):
+        project_name = "/".join( project_name_arr[0: i] )
+        project = get_project(project_name)
         if project is not None:
             return project_name
         
@@ -91,9 +88,9 @@ def get_project_name(env):
 
 
 """
-    Find project by name
+    Get project by name
 """
-def find_project(project_name):
+def get_project(project_name):
     
     sql = """
         select * from projects
@@ -190,7 +187,6 @@ def check_access_level(user_login, project_name):
     return access_value
     
     
-
 """
 Mercurial App
 """    
@@ -230,13 +226,13 @@ def application_mercurial(env, start_response, access_level):
     return application(env, start_response)
 
 
-
 """
   uWSGI App
 """
 def application(env, start_response):
     
-    project_name = get_project_name(env)
+    project_name = get_app_uri(env)
+    project_name = find_project(project_name)
     if project_name == "":
         return out_deny(env, start_response)
         

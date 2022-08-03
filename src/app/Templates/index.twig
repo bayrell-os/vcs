@@ -22,10 +22,10 @@
 {% for project in projects %}
 <tr>
 	<td>{{ loop.index }}</td>
+	<td>{{ project.name }}</td>
 	<td>{{ project.type == "hg" ? "Mercurial" : (
 		project.type == "git" ? "Git" : ""
 	) }}</td>
-	<td>{{ project.name }}</td>
 	<td>
 		<a href="{{ base_url }}/{{project.type}}/{{ project.name }}">
 			[Open]

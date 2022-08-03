@@ -40,14 +40,14 @@ def find_project(project_name):
     if project_name_arr[0] == "":
         project_name_arr = project_name_arr[1:]
     
-    for i in range(0, min(3, len(project_name_arr))):
-        
-        project_name = "/".join( project_name_arr[0: i + 1] )
+    for i in range(min(3, len(project_name_arr)), 0, -1):
+        project_name = "/".join( project_name_arr[0: i] )
         project = get_project(project_name)
         if project is not None:
             return project_name
         
     return ""
+
 
 """
     Get user by name
@@ -134,7 +134,6 @@ def check_access_level(user_login, project_name):
 """
     Core code
 """
-
 git_project_path = os.getcwd()
 git_repo_path = "/data/repo/git"
 
