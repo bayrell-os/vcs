@@ -73,44 +73,9 @@ class UsersUpdate extends Command
 			$users_in_groups = isset($res->result["users_in_groups"]) ?
 				$res->result["users_in_groups"] : [];
 			
-			foreach ($users as $user)
-			{
-				$item = User::findOrCreate([
-					"login" => $user['login'],
-				]);
-				$item->id = $user['id'];
-				$item->name = $user['name'];
-				$item->banned = $user['banned'];
-				$item->is_deleted = $user['is_deleted'];
-				$item->gmtime_created = $user['gmtime_created'];
-				$item->gmtime_updated = $user['gmtime_updated'];
-				$item->save();
-			}
-			
-			foreach ($groups as $group)
-			{
-				$item = UserGroup::findOrCreate([
-					"name" => $group['name'],
-				]);
-				$item->id = $group['id'];
-				$item->name = $group['name'];
-				$item->is_deleted = $user['is_deleted'];
-				$item->gmtime_created = $user['gmtime_created'];
-				$item->gmtime_updated = $user['gmtime_updated'];
-				$item->save();
-			}
-			
-			foreach ($users_in_groups as $user_in_group)
-			{
-				$item = UsersInGroups::findOrCreate([
-					"user_id" => $user_in_group['user_id'],
-					"group_id" => $user_in_group['group_id'],
-				]);
-				$item->is_deleted = $user_in_group['is_deleted'];
-				$item->gmtime_created = $user_in_group['gmtime_created'];
-				$item->gmtime_updated = $user_in_group['gmtime_updated'];
-				$item->save();
-			}
+			User::sync($users);
+			UserGroup::sync($groups);
+			UsersInGroups::sync($users_in_groups);
 		}
 		
 		return Command::SUCCESS;

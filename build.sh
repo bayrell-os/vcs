@@ -7,62 +7,64 @@ BASE_PATH=`dirname $SCRIPT_PATH`
 RETVAL=0
 VERSION=1.0
 SUBVERSION=0
-IMAGE="vcs"
+IMAGE="bayrell/vcs"
 
 TAG=`date '+%Y%m%d_%H%M%S'`
 
 case "$1" in
 	
 	test)
-		echo "Build bayrell/$IMAGE:$VERSION.$SUBVERSION-$TAG"
-		docker build ./ -t bayrell/$IMAGE:$VERSION.$SUBVERSION-$TAG \
+		echo "Build $IMAGE:$VERSION.$SUBVERSION-$TAG"
+		docker build ./ -t $IMAGE:$VERSION.$SUBVERSION-$TAG \
             --file stages/Dockerfile --build-arg ARCH=-amd64
+		docker tag $IMAGE:$VERSION.$SUBVERSION-$TAG $IMAGE:$VERSION.$SUBVERSION
+		docker tag $IMAGE:$VERSION.$SUBVERSION-$TAG $IMAGE:$VERSION
 	;;
 	
 	amd64)
-		echo "Build bayrell/$IMAGE:$VERSION.$SUBVERSION-amd64"
-		docker build ./ -t bayrell/$IMAGE:$VERSION.$SUBVERSION-amd64 \
+		echo "Build $IMAGE:$VERSION.$SUBVERSION-amd64"
+		docker build ./ -t $IMAGE:$VERSION.$SUBVERSION-amd64 \
 			--file stages/Dockerfile --build-arg ARCH=-amd64
 	;;
 	
 	arm64v8)
-		echo "Build bayrell/$IMAGE:$VERSION.$SUBVERSION-arm64v8"
-		docker build ./ -t bayrell/$IMAGE:$VERSION.$SUBVERSION-arm64v8 \
+		echo "Build $IMAGE:$VERSION.$SUBVERSION-arm64v8"
+		docker build ./ -t $IMAGE:$VERSION.$SUBVERSION-arm64v8 \
 			--file stages/Dockerfile --build-arg ARCH=-arm64v8
 	;;
 	
 	arm32v7)
-		echo "Build bayrell/$IMAGE:$VERSION.$SUBVERSION-arm32v7"
-		docker build ./ -t bayrell/$IMAGE:$VERSION.$SUBVERSION-arm32v7 \
+		echo "Build $IMAGE:$VERSION.$SUBVERSION-arm32v7"
+		docker build ./ -t $IMAGE:$VERSION.$SUBVERSION-arm32v7 \
 			--file stages/Dockerfile --build-arg ARCH=-arm32v7
 	;;
 	
 	manifest)
-		rm -rf ~/.docker/manifests/docker.io_bayrell_$IMAGE-*
+		rm -rf ~/.docker/manifests/docker.io_bayrell_vcs-*
 		
-		docker tag bayrell/$IMAGE:$VERSION.$SUBVERSION-amd64 bayrell/$IMAGE:$VERSION-amd64
-		docker tag bayrell/$IMAGE:$VERSION.$SUBVERSION-arm64v8 bayrell/$IMAGE:$VERSION-arm64v8
-		docker tag bayrell/$IMAGE:$VERSION.$SUBVERSION-arm32v7 bayrell/$IMAGE:$VERSION-arm32v7
+		docker tag $IMAGE:$VERSION.$SUBVERSION-amd64 $IMAGE:$VERSION-amd64
+		docker tag $IMAGE:$VERSION.$SUBVERSION-arm64v8 $IMAGE:$VERSION-arm64v8
+		docker tag $IMAGE:$VERSION.$SUBVERSION-arm32v7 $IMAGE:$VERSION-arm32v7
 		
-		docker push bayrell/$IMAGE:$VERSION.$SUBVERSION-amd64
-		docker push bayrell/$IMAGE:$VERSION.$SUBVERSION-arm64v8
-		docker push bayrell/$IMAGE:$VERSION.$SUBVERSION-arm32v7
+		docker push $IMAGE:$VERSION.$SUBVERSION-amd64
+		docker push $IMAGE:$VERSION.$SUBVERSION-arm64v8
+		docker push $IMAGE:$VERSION.$SUBVERSION-arm32v7
 		
-		docker push bayrell/$IMAGE:$VERSION-amd64
-		docker push bayrell/$IMAGE:$VERSION-arm64v8
-		docker push bayrell/$IMAGE:$VERSION-arm32v7
+		docker push $IMAGE:$VERSION-amd64
+		docker push $IMAGE:$VERSION-arm64v8
+		docker push $IMAGE:$VERSION-arm32v7
 		
-		docker manifest create bayrell/$IMAGE:$VERSION.$SUBVERSION \
-			--amend bayrell/$IMAGE:$VERSION.$SUBVERSION-amd64 \
-			--amend bayrell/$IMAGE:$VERSION.$SUBVERSION-arm64v8 \
-			--amend bayrell/$IMAGE:$VERSION.$SUBVERSION-arm32v7
-		docker manifest push bayrell/$IMAGE:$VERSION.$SUBVERSION
+		docker manifest create $IMAGE:$VERSION.$SUBVERSION \
+			--amend $IMAGE:$VERSION.$SUBVERSION-amd64 \
+			--amend $IMAGE:$VERSION.$SUBVERSION-arm64v8 \
+			--amend $IMAGE:$VERSION.$SUBVERSION-arm32v7
+		docker manifest push $IMAGE:$VERSION.$SUBVERSION
 		
-		docker manifest create bayrell/$IMAGE:$VERSION \
-			--amend bayrell/$IMAGE:$VERSION-amd64 \
-			--amend bayrell/$IMAGE:$VERSION-arm64v8 \
-			--amend bayrell/$IMAGE:$VERSION-arm32v7
-		docker manifest push bayrell/$IMAGE:$VERSION
+		docker manifest create $IMAGE:$VERSION \
+			--amend $IMAGE:$VERSION-amd64 \
+			--amend $IMAGE:$VERSION-arm64v8 \
+			--amend $IMAGE:$VERSION-arm32v7
+		docker manifest push $IMAGE:$VERSION
 	;;
 	
 	all)
@@ -73,7 +75,7 @@ case "$1" in
 	;;
 	
 	*)
-		echo "Build bayrell/$IMAGE:$VERSION.$SUBVERSION"
+		echo "Build $IMAGE:$VERSION.$SUBVERSION"
 		echo "Usage: $0 {amd64|arm64v8|arm32v7|manifest|all|test}"
 		RETVAL=1
 
