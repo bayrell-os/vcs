@@ -1,0 +1,45 @@
+{% extends "@app/layout.twig" %}
+
+{% block content %}
+
+{% if project is defined %}
+<h1>Delete project {{ project.type }}/{{ project.name }}</h1>
+{% endif %}
+
+{% if not is_admin %}
+
+You have no permission
+
+{% else %}
+
+<style>
+.web_form{
+	width: 500px;
+}
+</style>
+
+{% if project is not defined %}
+
+Project not found
+
+{% elseif is_post %}
+
+The project is deleted.
+
+{% else %}
+
+<form class="web_form" method="POST" enctype="multipart/form-data">
+    <div>
+       Do you really want to delete this project?<br/>The data will remove !!!
+    </div>
+    <br/>
+    <button class="button button--danger">Delete project</button>
+</form>
+
+{% endif %}
+
+
+{% endif %}
+
+
+{% endblock %}

@@ -50,7 +50,11 @@ class ProjectRoute extends Route
 			"name" => "site:project:add",
 			"method" => [$this, "actionAdd"],
 		]);
-		
+		$route_container->addRoute([
+			"url" => "/delete/",
+			"name" => "site:project:delete",
+			"method" => [$this, "actionDelete"],
+		]);
 		$route_container->addRoute([
 			"url" => "/settings/",
 			"name" => "site:project:settings",
@@ -166,6 +170,12 @@ class ProjectRoute extends Route
 			"Project add"
 		);
 		
+		/* No permission */
+		if (!$this->isAdmin())
+		{
+			$this->render("@app/nopermission.twig");
+		}
+		
 		$form = [
 			"result" => [],
 			"data" => [
@@ -180,7 +190,7 @@ class ProjectRoute extends Route
 		];
 		
 		/* Is post ? */
-		if ($this->container->isPost() && $this->isAdmin())
+		if ($this->container->isPost())
 		{
 			$form = $this->postProjectAdd($form);
 		}
@@ -190,6 +200,50 @@ class ProjectRoute extends Route
 		
 		/* Render */
 		$this->render("@app/projects/add.twig");
+	}
+	
+	
+	
+	/**
+	 * Project delete
+	 */
+	function actionDelete()
+	{
+		$this->container->add_breadcrumb(
+			static::url("site:project:delete"),
+			"Project delete"
+		);
+		
+		/* No permission */
+		if (!$this->isAdmin())
+		{
+			$this->render("@app/nopermission.twig");
+		}
+		
+		$project_id = $this->container->get("id");
+		
+		/* Find project */
+		$project = Project::findItem([
+			"id" => $project_id,
+		]);
+		if (!$project)
+		{
+			$this->render("@app/projects/delete.twig");
+			return;
+		}
+		
+		/* Is post ? */
+		if ($this->container->isPost())
+		{
+			$this->setContext("is_post", true);
+			
+			Project::removeProject($project->id);
+		}
+		
+		$this->setContext("project", $project->toArray());
+		
+		/* Render */
+		$this->render("@app/projects/delete.twig");
 	}
 	
 	
@@ -214,11 +268,18 @@ class ProjectRoute extends Route
 			"Settings"
 		);
 		
+		/* No permission */
+		if (!$this->isAdmin())
+		{
+			$this->render("@app/nopermission.twig");
+		}
+		
 		$project = Project::findItem([
 			"id" => $project_id,
 		]);
 		if (!$project)
 		{
+			$this->render("@app/projects/settings.twig");
 			return;
 		}
 		
@@ -226,7 +287,7 @@ class ProjectRoute extends Route
 		$project_rename_name = $project->name;
 		
 		/* Is post ? */
-		if ($this->container->isPost() && $this->isAdmin())
+		if ($this->container->isPost())
 		{
 			$users = $this->container->post("users", []);
 			Project::saveUsers($project_id, $users);
@@ -297,6 +358,7 @@ class ProjectRoute extends Route
 		sort($users_list);
 		
 		/* Set context */
+		$this->setContext("project", $project->toArray());
 		$this->setContext("project_id", $project_id);
 		$this->setContext("project_type", $project->type);
 		$this->setContext("project_name", $project->name);

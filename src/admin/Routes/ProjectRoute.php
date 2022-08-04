@@ -54,6 +54,11 @@ class ProjectRoute extends AppProjectRoute
 			"method" => [$this, "actionAdd"],
 		]);
 		$route_container->addRoute([
+			"url" => "/projects/delete/",
+			"name" => "site:project:delete",
+			"method" => [$this, "actionDelete"],
+		]);
+		$route_container->addRoute([
 			"url" => "/projects/settings/",
 			"name" => "site:project:settings",
 			"method" => [$this, "actionSettings"],

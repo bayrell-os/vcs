@@ -565,6 +565,43 @@ class Project extends Model
 	
 	
 	/**
+	 * Remove project
+	 */
+	static function removeProject($project_id)
+	{
+		$project = static::findItem([
+			"id" => $project_id,
+		]);
+		if (!$project)
+		{
+			throw new \Exception("Project not found");
+			return null;
+		}
+		
+		$repo_path_id = "/data/repo/id/" . $project->id;
+		$repo_path = static::getRepoPath($project->type, $project->name);
+		
+		/* Remove symlinks */
+		if (file_exists($repo_path))
+		{
+			@unlink($repo_path);
+		}
+		
+		/* Remove data */
+		if (file_exists($repo_path_id))
+		{
+			$cmd = "rm -rf $repo_path_id";
+			shell_exec($cmd);
+		}
+		
+		$project->delete();
+		
+		return $project;
+	}
+	
+	
+	
+	/**
 	 * Setup users
 	 */
 	static function saveUsers($project_id, $new_users)

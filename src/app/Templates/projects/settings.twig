@@ -4,8 +4,9 @@
 
 <script src="{{ base_url }}/static/vue.global.prod.js"></script>
 
-
+{% if project is defined %}
 <h1>Settings {{ project_type }}/{{ project_name }}</h1>
+{% endif %}
 
 <style>
 .web_form__left, .web_form__right{
@@ -26,6 +27,12 @@ You have no permission
 
 {% else %}
 
+{% if project is not defined %}
+
+Project not found
+
+{% else %}
+
 {% verbatim %}
 <div id="app">
 	
@@ -36,7 +43,8 @@ You have no permission
 				<div class="web_form__label">Username</div>
 				<div class="web_group web_group--button_right">
 					<select class="web_form__input" v-model="user_name">
-						<option :value="">Select value</option>
+						<option value="">Select value</option>
+						<option value="@all">@all</option>
 						<option v-for="user in users_list"
 							:key="user"
 							:value="user">{{ user }}</option>
@@ -98,6 +106,12 @@ You have no permission
 					v-model="project_rename_name" name="project_rename_name" />
 				<div class="web_form__field_error">{{ project_rename_error }}</div>
 			</div>
+			<div class="web_form__row">
+				<div class="web_form__label">Delete project</div>
+				<a class="nolink" :href="delete_url + '?id=' + project.id">
+					<button type="button" class="button button--danger">Delete project</button>
+				</a>
+			</div>
 		</div>
 		
 	</form>
@@ -115,9 +129,11 @@ createApp({
 			user_name: "",
 			user_name_error: "",
 			users_list: {{ json_encode(users_list) | raw }},
+			project: {{ json_encode(project) | raw }},
 			project_rename_name: {{ json_encode(project_rename_name) | raw }},
 			project_rename_error: {{ json_encode(project_rename_error) | raw }},
 			users: {{ json_encode(users) | raw }},
+			delete_url: {{ json_encode(url('site:project:delete')) | raw }},
 		}
 	},
 	methods: {
@@ -146,6 +162,8 @@ createApp({
 	},
 }).mount('#app')
 </script>
+
+{% endif %}
 
 {% endif %}
 
