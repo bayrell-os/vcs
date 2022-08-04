@@ -121,7 +121,7 @@ class DefaultRoute extends Route
 		$this->setContext("projects", $projects);
 		
 		/* Set result */
-		$this->render("@app/index.twig");
+		$this->render("@app/projects/index.twig");
 	}
 	
 }

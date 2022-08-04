@@ -224,7 +224,6 @@ ol, ul {
 /* Pagination */
 .pagination{
 	text-align: center;
-	padding-top: 20px;
 }
 .pagination ul, .pagination li{
 	margin: 0;
@@ -234,12 +233,21 @@ ol, ul {
 .pagination li{
 	display: inline-block;
 	vertical-align: top;
+	margin-left: 5px;
+	margin-right: 5px;
 }
-.pagination li a, .pagination li span{
-	display: block;
-	padding: 5px 10px;
+.pagination li a, .pagination li a:hover, .pagination li span{
+	display: table-cell;
+	vertical-align: middle;
+	background-color: #fff;
+	color: #000;
+	text-align: center;
+	width: 30px;
+	height: 30px;
+	font-size: 14px;
+	text-decoration: none;
 }
-.pagination li a.active{
+.pagination li.active a{
 	background-color: #0000d0;
 	color: white;
 }
@@ -298,6 +306,9 @@ ol, ul {
 .web_table tr:hover{
 	background-color: #eee;
 	color: inherit;
+}
+.web_table tr.nohover:hover{
+	background-color: transparent;
 }
 .web_table tr.active{
 	background-color: #337ab7;

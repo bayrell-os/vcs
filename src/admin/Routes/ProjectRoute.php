@@ -48,18 +48,26 @@ class ProjectRoute extends AppProjectRoute
 			"name" => "site:project:index",
 			"method" => [$this, "actionIndex"],
 		]);
-		
 		$route_container->addRoute([
 			"url" => "/projects/add/",
 			"name" => "site:project:add",
 			"method" => [$this, "actionAdd"],
 		]);
-		
 		$route_container->addRoute([
 			"url" => "/projects/settings/",
 			"name" => "site:project:settings",
 			"method" => [$this, "actionSettings"],
 		]);
+	}
+	
+	
+	
+	/**
+	 * Check auth
+	 */
+	function isAdmin()
+	{
+		return true;
 	}
 	
 	
@@ -81,115 +89,7 @@ class ProjectRoute extends AppProjectRoute
 		$this->setContext("projects", $projects);
 		
 		/* Set result */
-		$this->render("@app_admin/projects/index.twig");
-	}
-	
-	 
-	
-	/**
-	 * Project add
-	 */
-	function actionAdd()
-	{
-		$this->container->add_breadcrumb(
-			static::url("site:project:index"),
-			"Projects"
-		);
-		
-		$this->container->add_breadcrumb(
-			static::url("site:project:add"),
-			"Project add"
-		);
-		
-		$form = [
-			"result" => [],
-			"data" => [
-				"type" => "",
-				"project_name" => "",
-			],
-			"error_fields" => [
-				"type" => [],
-				"project_name" => [],
-			],
-			"error_code" => 0,
-		];
-		
-		/* Is post ? */
-		if ($this->container->isPost())
-		{
-			$form = $this->postProjectAdd($form);
-		}
-		
-		/* Set context */
-		$this->setContext("form", $form);
-		
-		/* Render */
-		$this->render("@app_admin/projects/add.twig");
-	}
-	
-	
-	
-	/**
-	 * Project settings
-	 */
-	function actionSettings()
-	{
-		$this->container->add_breadcrumb(
-			static::url("site:project:index"),
-			"Projects"
-		);
-		
-		$project_type = $this->container->get("type");
-		$project_name = $this->container->get("name");
-		
-		/* Set context */
-		$this->setContext("project_type", $project_type);
-		$this->setContext("project_name", $project_name);
-		
-		$this->container->add_breadcrumb
-		(
-			static::url_get_add(
-				static::url("site:project:settings"),
-				[
-					"type"=>$project_type,
-					"name"=>$project_name,
-				]
-			),
-			"Settings"
-		);
-		
-		/* Is post ? */
-		if ($this->container->isPost())
-		{
-			$users = $this->container->post("users", []);
-			Project::saveUsers($project_type, $project_name, $users);
-		}
-		
-		/* Read users */
-		$users = Project::getUsers($project_type, $project_name);
-		
-		/* Sort users */
-		usort(
-			$users,
-			function ($a, $b)
-			{
-				if ($a["value"] != $b["value"])
-				{
-					return ($a["value"] < $b["value"]) ? -1 : 1;
-				}
-				if ($a["name"] == $b["name"])
-				{
-					return 0;
-				}
-				return ($a["name"] < $b["name"]) ? -1 : 1;
-			}
-		);
-		
-		/* Set context */
-		$this->setContext("users", $users);
-		
-		/* Render */
-		$this->render("@app_admin/projects/settings.twig");
+		$this->render("@app/projects/index.twig");
 	}
 	
 }

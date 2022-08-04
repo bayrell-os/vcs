@@ -30,6 +30,8 @@ namespace App\Routes;
 
 use App\AppHelper;
 use App\Models\Project;
+use App\Models\User;
+use App\Models\UserGroup;
 use TinyPHP\RenderContainer;
 use TinyPHP\Route;
 use TinyPHP\RouteContainer;
@@ -54,6 +56,17 @@ class ProjectRoute extends Route
 			"name" => "site:project:settings",
 			"method" => [$this, "actionSettings"],
 		]);
+	}
+	
+	
+	
+	/**
+	 * Check auth
+	 */
+	function isAdmin()
+	{
+		$auth = app(\TinyPHP\Auth::class);
+		return $auth->isAdmin();
 	}
 	
 	
@@ -148,8 +161,6 @@ class ProjectRoute extends Route
 	 */
 	function actionAdd()
 	{
-		$auth = app(\TinyPHP\Auth::class);
-		
 		$this->container->add_breadcrumb(
 			static::url("site:project:add"),
 			"Project add"
@@ -169,7 +180,7 @@ class ProjectRoute extends Route
 		];
 		
 		/* Is post ? */
-		if ($this->container->isPost() && $auth->isAdmin())
+		if ($this->container->isPost() && $this->isAdmin())
 		{
 			$form = $this->postProjectAdd($form);
 		}
@@ -178,7 +189,7 @@ class ProjectRoute extends Route
 		$this->setContext("form", $form);
 		
 		/* Render */
-		$this->render("@app/add_project.twig");
+		$this->render("@app/projects/add.twig");
 	}
 	
 	
@@ -190,34 +201,60 @@ class ProjectRoute extends Route
 	{
 		$auth = app(\TinyPHP\Auth::class);
 		
-		$project_type = $this->container->get("type");
-		$project_name = $this->container->get("name");
-		
-		/* Set context */
-		$this->setContext("project_type", $project_type);
-		$this->setContext("project_name", $project_name);
-		
+		$project_id = $this->container->get("id");
+				
 		$this->container->add_breadcrumb
 		(
 			static::url_get_add(
 				static::url("site:project:settings"),
 				[
-					"type"=>$project_type,
-					"name"=>$project_name,
+					"id" => $project_id,
 				]
 			),
 			"Settings"
 		);
 		
+		$project = Project::findItem([
+			"id" => $project_id,
+		]);
+		if (!$project)
+		{
+			return;
+		}
+		
+		$project_rename_error = "";
+		$project_rename_name = $project->name;
+		
 		/* Is post ? */
-		if ($this->container->isPost() && $auth->isAdmin())
+		if ($this->container->isPost() && $this->isAdmin())
 		{
 			$users = $this->container->post("users", []);
-			Project::saveUsers($project_type, $project_name, $users);
+			Project::saveUsers($project_id, $users);
+			
+			/* Rename project */
+			$project_rename_name = $this->container->post("project_rename_name", "");
+			if ($project->name != $project_rename_name)
+			{
+				try
+				{
+					$project = Project::renameProject(
+						$project_id,
+						$project_rename_name
+					);
+					$project_rename_name = $project->name;
+				}
+				catch (\Exception $e)
+				{
+					$project_rename_error = $e->getMessage();
+				}
+			}
+			
+			/* Check repo path */
+			Project::checkRepoPath($project_id);
 		}
 		
 		/* Read users */
-		$users = Project::getUsers($project_type, $project_name);
+		$users = Project::getUsers($project_id);
 		
 		/* Sort users */
 		usort(
@@ -236,11 +273,40 @@ class ProjectRoute extends Route
 			}
 		);
 		
+		/* Get user and group list */
+		$users_list = User::selectQuery()
+			->where("is_deleted", 0)
+			->where("banned", 0)
+			->all()
+		;
+		$users_list = array_map(function($item){
+			return $item["login"];
+		}, $users_list);
+		
+		/* Get user and group list */
+		$groups_list = UserGroup::selectQuery()
+			->where("is_deleted", 0)
+			->all()
+		;
+		$groups_list = array_map(function($item){
+			return "@".$item["name"];
+		}, $groups_list);
+		
+		/* Merge and sort */
+		$users_list = array_merge($users_list, $groups_list);
+		sort($users_list);
+		
 		/* Set context */
+		$this->setContext("project_id", $project_id);
+		$this->setContext("project_type", $project->type);
+		$this->setContext("project_name", $project->name);
+		$this->setContext("project_rename_name", $project_rename_name);
+		$this->setContext("project_rename_error", $project_rename_error);
 		$this->setContext("users", $users);
+		$this->setContext("users_list", $users_list);
 		
 		/* Render */
-		$this->render("@app/settings.twig");
+		$this->render("@app/projects/settings.twig");
 	}
 	
 }

@@ -1,0 +1,144 @@
+{% extends "@app/layout.twig" %}
+
+{% block content %}
+
+<h1>Projects</h1>
+
+<script src="{{ base_url }}/static/vue.global.prod.js"></script>
+
+<style>
+.filter__project_name{
+	width: 300px;
+}
+</style>
+
+{% if is_admin %}
+<p>
+	<a class="link" href="{{ url('site:project:add') }}">[Add project]</a>
+</p>
+{% endif %}
+
+{% verbatim %}
+<div id="app">
+	<div class="web_form__row filter__project_name">
+		<div class="web_form__label">Project name:</div>
+		<input class="web_form__input" v-model="project_name"
+			@change="onChangeName()"
+			@keypress="onChangeName()"
+			/>
+	</div>
+	<table class="web_table">
+		<tr>
+			<th></th>
+			<th>Type</th>
+			<th>Name</th>
+			<th v-if="!is_admin_panel"></th>
+			<th v-if="is_admin"></th>
+		</tr>
+		<tr v-for="project, index in getProjects()">
+			<td>{{ (page - 1) * count_in_page + index + 1 }}</td>
+			<td>{{ project.name }}</td>
+			<td>{{ project.type == "hg" ? "Mercurial" : (
+				project.type == "git" ? "Git" : ""
+			) }}</td>
+			<td v-if="!is_admin_panel">
+				<a class="link" :href="base_url + '/' + project.type + '/' + project.name">
+					[Open]
+				</a>
+			</td>
+			<td v-if="is_admin">
+				<a class="link" :href="settings_url + '?id=' + project.id">
+					[Settings]
+				</a>
+			</td>
+		</tr>
+		<tr class="nohover">
+			<td :colspan="3 + ((is_admin) ? 1 : 0) + ((!is_admin_panel) ? 1 : 0)">
+				<nav class="pagination">
+					<ul>
+						<li v-for="p in pages" :key="p" :data-page="p" class="btn page"
+							v-bind:class='{ "active": isActive(p) }'
+							@click="openPage(p)"
+						>
+							<a class="nolink">{{ p }}</a>
+						</li>
+					</ul>
+				</nav>
+			</td>
+		</tr>
+	</table>
+</div>
+{% endverbatim %}
+
+
+<script>
+const { createApp } = Vue
+
+createApp({
+	data() {
+		return {
+			base_url: {{ json_encode(base_url) | raw }},
+			projects: {{ json_encode(projects) | raw }},
+			project_name: "",
+			settings_url: {{ json_encode(url('site:project:settings')) | raw }},
+			is_admin: {{ json_encode(is_admin) | raw }},
+			is_admin_panel: {{ json_encode(is_admin_panel) | raw }},
+			page: 1,
+			count_in_page: 10,
+		}
+	},
+	computed: {
+		pages: function(){
+			let pages = Math.ceil(this.filterProjects.length / this.count_in_page);
+			if (pages < 1) return 1;
+			return pages;
+		},
+		filterProjects: function()
+		{
+			let projects = this.projects;
+			
+			projects = projects.filter(
+				(project) => {
+					return this.project_name == "" ||
+						this.project_name != "" &&
+						project.name.indexOf(this.project_name) != -1
+					;
+				}
+			);
+			
+			return projects;
+		},
+	},
+	methods: {
+		isActive: function(p)
+		{
+			return this.page == p;
+		},
+		openPage: function(p)
+		{
+			this.page = p;
+		},
+		getProjects: function()
+		{
+			let projects = this.filterProjects;
+			
+			projects = projects.filter(
+				(project, index, self) => {
+					return index >= (this.page - 1) * this.count_in_page &&
+						index < this.page * this.count_in_page
+					;
+				}
+			);
+			
+			return projects;
+		},
+		onChangeName: function()
+		{
+			this.page = 1;	
+		},
+	},
+}).mount('#app')
+</script>
+
+
+{% endblock %}

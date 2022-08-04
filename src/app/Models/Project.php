@@ -111,17 +111,19 @@ class Project extends Model
 	 */
 	static function validateProjectName($project_name)
 	{
+		if ($project_name == "")
+		{
+			return false;
+		}
 		if (preg_match('/[^a-z_\-0-9\/]/i', $project_name))
 		{
 			return false;
 		}
-		
 		$project_name_arr = explode("/", $project_name);
 		if (count($project_name_arr) > 3)
 		{
 			return false;
 		}
-		
 		return true;
 	}
 	
@@ -279,6 +281,7 @@ class Project extends Model
 	{
 		$projects = static::selectQuery()
 			->fields(
+				"id",
 				"type",
 				"name"
 			)
@@ -292,6 +295,7 @@ class Project extends Model
 			function($item)
 			{
 				return [
+					"id" => $item["id"],
 					"type" => $item["type"],
 					"name" => $item["name"],
 					"path" => (
@@ -304,8 +308,8 @@ class Project extends Model
 			$projects
 		);
 		
-		$projects = array_merge($projects, static::scanProjects("hg", "/data/repo/hg", 0));
-		$projects = array_merge($projects, static::scanProjects("git", "/data/repo/git", 0));
+		// $projects = array_merge($projects, static::scanProjects("hg", "/data/repo/hg", 0));
+		// $projects = array_merge($projects, static::scanProjects("git", "/data/repo/git", 0));
 		
 		usort(
 			$projects,
@@ -337,54 +341,91 @@ class Project extends Model
 	
 	
 	/**
-	 * Create project
+	 * Filter project name
 	 */
-	static function createProject($type, $project_name)
+	static function filterProjectName($project_name)
 	{
 		$project_name = preg_replace("/\/+$/", "", $project_name);
 		$project_name = preg_replace("/^\/+/", "", $project_name);
 		$project_name = preg_replace("/\/+/", "/", $project_name);
 		
-		$repo_path = static::getRepoPath($type, $project_name);
+		$project_name_arr = explode("/", $project_name);
+		$project_name_arr = array_map(
+			function($name){
+				return trim($name);
+			},
+			$project_name_arr
+		);
+		
+		return implode("/", $project_name_arr);
+	}
+	
+	
+	
+	/**
+	 * Create project
+	 */
+	static function createProject($project_type, $project_name)
+	{
+		if (!static::validateProjectName($project_name))
+		{
+			throw new \Exception("Project name must be valid");
+			return null;
+		}
+		
+		$project_name = static::filterProjectName($project_name);
 		
 		$project_name_arr = explode("/", $project_name);
 		for ($i=1; $i<=count($project_name_arr); $i++)
 		{
 			$sub_project_name = implode("/", array_slice($project_name_arr, 0, $i));
-			$project = static::findItem([
-				"name" => $sub_project_name,
-			]);
-			if ($project)
-			{
-				throw new \Exception("Project is already exists");
-			}
 			if (static::isRepoPath("/data/repo/hg/" . $sub_project_name))
 			{
-				throw new \Exception("Can't create project in other project");
+				throw new \Exception("Project already exists");
 				return "";
 			}
 			if (static::isRepoPath("/data/repo/git/" . $sub_project_name))
 			{
-				throw new \Exception("Can't create project in other project");
+				throw new \Exception("Project already exists");
 				return "";
 			}
 		}
 		
-		if ($repo_path)
+		$repo_path = static::getRepoPath($project_type, $project_name);
+		if (file_exists($repo_path))
 		{
-			/* Create mercurial project */
-			if ($type == "hg" || $type == "git")
+			throw new \Exception("Project already exists");
+			return "";
+		}
+		
+		if ($repo_path && ($project_type == "hg" || $project_type == "git"))
+		{
+			$project = static::findOrCreate([
+				"type" => $project_type,
+				"name" => $project_name,
+			]);
+			$project->is_deleted = 0;
+			$project->save();
+			
+			$repo_path_id = "/data/repo/id/" . $project->id;
+			@mkdir($repo_path_id, 0775, true);
+			$cmd = "/var/www/html/bin/project.init.sh " . $project_type . " " . $project->id;
+			$res = shell_exec($cmd);
+			
+			$base_repo_path = dirname($repo_path);
+			@mkdir($base_repo_path, 0775, true);
+			shell_exec("ln -s /data/repo/id/" . $project->id . " " . $repo_path);
+			
+			/* Save project name */
+			if ($project_type == "git")
 			{
-				@mkdir($repo_path, 0775, true);
-				$cmd = "/var/www/html/bin/project.init.sh " . $type . " " . $project_name;
-				$res = shell_exec($cmd);
-				
-				$project = static::findOrCreate([
-					"type" => $type,
-					"name" => $project_name,
-				]);
-				$project->is_deleted = 0;
-				$project->save();
+				$file_path = $repo_path_id . "/project_name.txt";
+				file_put_contents($file_path, $project_name);
+			}
+			else if ($project_type == "hg")
+			{
+				$file_path = $repo_path_id . "/.hg/project_name.txt";
+				file_put_contents($file_path, $project_name);
 			}
 		}
 		
@@ -394,19 +435,146 @@ class Project extends Model
 	
 	
 	/**
+	 * Check repo path
+	 */
+	static function checkRepoPath($project_id)
+	{
+		$project = static::findItem([
+			"id" => $project_id,
+		]);
+		if (!$project)
+		{
+			return false;
+		}
+		
+		$repo_path_id = "/data/repo/id/" . $project->id;
+		$repo_path = static::getRepoPath($project->type, $project->name);
+		if (!file_exists($repo_path))
+		{
+			$base_repo_path = dirname($repo_path);
+			@mkdir($base_repo_path, 0775, true);
+			$cmd = "ln -s /data/repo/id/" . $project->id . " " . $repo_path;
+			shell_exec($cmd);
+		}
+		
+		/* Save project name */
+		if ($project->type == "git")
+		{
+			$file_path = $repo_path_id . "/project_name.txt";
+			file_put_contents($file_path, $project->name);
+		}
+		else if ($project->type == "hg")
+		{
+			$file_path = $repo_path_id . "/.hg/project_name.txt";
+			file_put_contents($file_path, $project->name);
+		}
+		
+		return true;
+	}
+	
+	
+	
+	/**
+	 * Rename project
+	 */
+	static function renameProject($project_id, $project_name_new)
+	{
+		$project = static::findItem([
+			"id" => $project_id,
+		]);
+		if (!$project)
+		{
+			throw new \Exception("Project not found");
+			return null;
+		}
+		if (!static::validateProjectName($project_name_new))
+		{
+			throw new \Exception("Project name must be valid");
+			return null;
+		}
+		
+		$project_name_new = static::filterProjectName($project_name_new);
+		
+		$repo_path_id = "/data/repo/id/" . $project->id;
+		$repo_path_old = static::getRepoPath($project->type, $project->name);
+		$repo_path_new = static::getRepoPath($project->type, $project_name_new);
+		
+		$project_name_new_arr = explode("/", $project_name_new);
+		for ($i=1; $i<=count($project_name_new_arr); $i++)
+		{
+			$sub_project_name_new = implode("/", array_slice($project_name_new_arr, 0, $i));
+			if ($sub_project_name_new == $project->name)
+			{
+				continue;
+			}
+			$project_item = static::findItem([
+				["type", "=", $project->type],
+				["name", "=", $sub_project_name_new],
+				["id", "!=", $project->id],
+			]);
+			if ($project_item)
+			{
+				throw new \Exception("Project is already exists");
+				return false;
+			}
+			if (static::isRepoPath("/data/repo/hg/" . $sub_project_name_new))
+			{
+				throw new \Exception("Project is already exists");
+				return false;
+			}
+			if (static::isRepoPath("/data/repo/git/" . $sub_project_name_new))
+			{
+				throw new \Exception("Project is already exists");
+				return false;
+			}
+		}
+		
+		/* Change symlinks */
+		if (file_exists($repo_path_old))
+		{
+			@unlink($repo_path_old);
+		}
+		
+		if (!file_exists($repo_path_new))
+		{
+			$base_repo_path_new = dirname($repo_path_new);
+			@mkdir($base_repo_path_new, 0775, true);
+			$cmd = "ln -s /data/repo/id/" . $project->id . " " . $repo_path_new;
+			shell_exec($cmd);
+		}
+		
+		/* Rename project in database */
+		$project->name = $project_name_new;
+		$project->save();
+		
+		/* Save project name */
+		if ($project->type == "git")
+		{
+			$file_path = $repo_path_id . "/project_name.txt";
+			file_put_contents($file_path, $project_name_new);
+		}
+		else if ($project->type == "hg")
+		{
+			$file_path = $repo_path_id . "/.hg/project_name.txt";
+			file_put_contents($file_path, $project_name_new);
+		}
+		
+		return $project;
+	}
+	
+	
+	
+	/**
 	 * Setup users
 	 */
-	static function saveUsers($type, $project_name, $new_users)
+	static function saveUsers($project_id, $new_users)
 	{
-		/* Get project id */
-		$project_id = 0;
-		$project = static::findOrCreate([
-			"type" => $type,
-			"name" => $project_name,
+		$project = static::findItem([
+			"id" => $project_id,
 		]);
-		if ($project->isNew())
+		if (!$project)
 		{
-			$project->save();
+			return false;
 		}
 		$project_id = $project->id;
 		
@@ -414,12 +582,14 @@ class Project extends Model
 		$users = User::selectQuery()
 			->where("is_deleted", "=", 0)
 			->where("banned", "=", 0)
-			->all();
-			
+			->all()
+		;
+		
 		/* Get groups */
 		$groups = UserGroup::selectQuery()
 			->where("is_deleted", "=", 0)
-			->all();
+			->all()
+		;
 		
 		$findUserOrGroup = function ($name) use ($users, $groups)
 		{
@@ -514,6 +684,7 @@ class Project extends Model
 			}
 		}
 		
+		return true;
 	}
 	
 	
@@ -521,19 +692,18 @@ class Project extends Model
 	/**
 	 * Read users for project
 	 */
-	static function getUsers($type, $project_name)
+	static function getUsers($project_id)
 	{
 		$project = Project::selectQuery()
-			->where("type", "=", $type)
-			->where("name", "=", $project_name)
-			->one();
-		
+			->where("id", "=", $project_id)
+			->one()
+		;
 		if (!$project) return [];
 			
 		$items = ProjectUser::selectQuery()
 			->where("project_id", "=", $project->id)
-			->all(true);
-		
+			->all(true)
+		;
 		return $items;
 	}
 	

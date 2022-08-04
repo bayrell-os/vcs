@@ -45,6 +45,7 @@ class Module
 		add_chain("base_url", static::class, "base_url");
 		add_chain("bus_gateway", static::class, "bus_gateway");
 		add_chain("twig_opt", static::class, "twig_opt");
+		add_chain("render", static::class, "render");
 	}
 	
 	
@@ -198,6 +199,20 @@ class Module
 		$twig_opt = $res["twig_opt"];
 		$twig_opt["cache"] = "/data/php/cache/twig";
 		$res["twig_opt"] = $twig_opt;
+	}
+	
+	
+	
+	/**
+	 * Render
+	 */
+	static function render($res)
+	{
+		$auth = app(\TinyPHP\Auth::class);
+		$context = $res["context"];
+		$context["is_admin"] = $auth->isAdmin();
+		$context["is_admin_panel"] = false;
+		$res["context"] = $context;
 	}
 	
 	

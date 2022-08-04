@@ -38,7 +38,7 @@ class Module extends \App\Module
 	static function register_hooks()
 	{
 		parent::register_hooks();
-		add_chain("twig_loader", static::class, "twig_loader");
+		add_chain("twig", static::class, "twig");
 	}
 	
 	
@@ -83,10 +83,24 @@ class Module extends \App\Module
 	/**
 	 * Twig loader
 	 */
-	static function twig_loader($res)
+	static function twig($res)
 	{
-		$obj = $res["obj"];
-		$obj->registerTemplatePath(\App\Module::class);
+		$twig = $res["twig"];
+		$twig->registerTemplatePath(\App\Module::class);
+	}
+	
+	
+	
+	/**
+	 * Render
+	 */
+	static function render($res)
+	{
+		parent::render($res);
+		$context = $res["context"];
+		$context["is_admin"] = true;
+		$context["is_admin_panel"] = true;
+		$res["context"] = $context;
 	}
 	
 	
