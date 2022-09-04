@@ -148,7 +148,7 @@ if project_name == "":
     print ("Project not found")
     exit(1)
 
-user_login = os.getenv("HTTP_CLOUD_AUTH_USER")
+user_login = os.getenv("HTTP_JWT_AUTH_USER")
 access_level = check_access_level(user_login, project_name)
 
 if access_level != 2:

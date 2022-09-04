@@ -42,7 +42,7 @@ class Module
 		add_chain("request_before", static::class, "request_before");
 		add_chain("method_not_found", static::class, "method_not_found");
 		add_chain("routes", static::class, "routes");
-		add_chain("base_url", static::class, "base_url");
+		add_chain("get_base_url", static::class, "get_base_url");
 		add_chain("bus_gateway", static::class, "bus_gateway");
 		add_chain("twig_opt", static::class, "twig_opt");
 		add_chain("render", static::class, "render");
@@ -68,6 +68,12 @@ class Module
 		
 		/* Setup auth */
 		$defs[\TinyPHP\Auth::class] = \DI\create(\App\Auth::class);
+		
+		/* Setup bus key */
+		$defs["settings"]["bus_key"] = env("CLOUD_OS_KEY");
+		
+		/* Setup jwt cookie key */
+		$defs["settings"]["jwt_cookie_key"] = env("JWT_COOKIE_KEY");
 		
 		/* Setup default db connection */
 		$defs["db_connection"] = \DI\create(\TinyORM\SQLiteConnection::class);
@@ -134,29 +140,12 @@ class Module
 			"Main"
 		);
 		
-		/* Parse JWT */
-		$cloud_jwt = $res->container->cookie("cloud_jwt");
-		$jwt = \App\JWT::create($cloud_jwt, false);
-		
-		/* Setup true because jwt sign checks in nginx lua script */
-		if ($jwt) $jwt->is_valid = true;
-		
-		/* Setup Auth */
-		$auth = app(\TinyPHP\Auth::class);
-		$auth->init([
-			"jwt" => $jwt,
-		]);
-		
-		/* Setup context */
-		$res->container->setContext("auth", $auth);
-		
-		$uri = $res->container->request->getRequestUri();
-		
 		/* Redirect if not auth */
+		/*
 		if (!$auth->isAuth())
 		{
 			$res->container->redirect("/login?r=" . urlencode($uri));
-		}
+		}*/
 	}
 	
 	
@@ -184,9 +173,9 @@ class Module
 	/**
 	 * Base url
 	 */
-	static function base_url($res)
+	static function get_base_url($res)
 	{
-		$res["base_url"] = $res->request->server->get('HTTP_X_ROUTE_PREFIX', '');
+		$res["base_url"] = $res->request->server->get('HTTP_X_FORWARDED_PREFIX', '');
 	}
 	
 	

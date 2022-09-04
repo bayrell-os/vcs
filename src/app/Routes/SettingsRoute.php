@@ -30,7 +30,7 @@ namespace App\Routes;
 
 use TinyPHP\RenderContainer;
 use TinyPHP\Route;
-use TinyPHP\RouteContainer;
+use TinyPHP\RouteList;
 
 
 class SettingsRoute extends Route
@@ -39,7 +39,7 @@ class SettingsRoute extends Route
 	/**
 	 * Declare routes
 	 */
-	function routes(RouteContainer $route_container)
+	function routes(RouteList $route_container)
 	{
 		$route_container->addRoute([
 			"url" => "/settings/",

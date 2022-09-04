@@ -43,8 +43,8 @@ def get_app_uri(env):
 def get_user_login(env):
    
     user_login = ""
-    if 'HTTP_CLOUD_AUTH_USER' in env:
-        user_login = env['HTTP_CLOUD_AUTH_USER']
+    if 'HTTP_JWT_AUTH_USER' in env:
+        user_login = env['HTTP_JWT_AUTH_USER']
     
     return user_login
 

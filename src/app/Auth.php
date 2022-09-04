@@ -69,19 +69,18 @@ class Auth extends \TinyPHP\Auth
 		
 		parent::init($params);
 		
-		$this->login = ($this->jwt && $this->jwt->isValid()) ? $this->jwt->login : "";
+		$login = $this->getLogin();
+		if ($login == "") return;
 		
 		/* Find user */
 		$user = User::selectQuery()
-			->where("login", "=", $this->login)
+			->where("login", "=", $login)
 			->where("is_deleted", "=", 0)
 			->where("banned", "=", 0)
 			->one()
 		;
 		if (!$user)
 		{
-			$this->login = "";
-			$this->jwt = null;
 			return;
 		}
 		

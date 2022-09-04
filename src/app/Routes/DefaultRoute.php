@@ -32,7 +32,7 @@ use App\Models\Project;
 use App\Models\ProjectUser;
 use TinyPHP\RenderContainer;
 use TinyPHP\Route;
-use TinyPHP\RouteContainer;
+use TinyPHP\RouteList;
 
 
 class DefaultRoute extends Route
@@ -41,7 +41,7 @@ class DefaultRoute extends Route
 	/**
 	 * Declare routes
 	 */
-	function routes(RouteContainer $route_container)
+	function routes(RouteList $route_container)
 	{
 		$route_container->addRoute([
 			"url" => "/",

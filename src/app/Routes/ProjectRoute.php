@@ -34,7 +34,7 @@ use App\Models\User;
 use App\Models\UserGroup;
 use TinyPHP\RenderContainer;
 use TinyPHP\Route;
-use TinyPHP\RouteContainer;
+use TinyPHP\RouteList;
 
 
 class ProjectRoute extends Route
@@ -43,7 +43,7 @@ class ProjectRoute extends Route
 	/**
 	 * Declare routes
 	 */
-	function routes(RouteContainer $route_container)
+	function routes(RouteList $route_container)
 	{
 		$route_container->addRoute([
 			"url" => "/add/",
