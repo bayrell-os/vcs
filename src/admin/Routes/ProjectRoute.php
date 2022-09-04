@@ -32,7 +32,7 @@ use App\Models\Project;
 use App\Routes\ProjectRoute as AppProjectRoute;
 use TinyPHP\RenderContainer;
 use TinyPHP\Route;
-use TinyPHP\RouteContainer;
+use TinyPHP\RouteList;
 
 
 class ProjectRoute extends AppProjectRoute
@@ -41,24 +41,24 @@ class ProjectRoute extends AppProjectRoute
 	/**
 	 * Declare routes
 	 */
-	function routes(RouteContainer $route_container)
+	function routes(RouteList $routes)
 	{
-		$route_container->addRoute([
+		$routes->addRoute([
 			"url" => "/projects/",
 			"name" => "site:project:index",
 			"method" => [$this, "actionIndex"],
 		]);
-		$route_container->addRoute([
+		$routes->addRoute([
 			"url" => "/projects/add/",
 			"name" => "site:project:add",
 			"method" => [$this, "actionAdd"],
 		]);
-		$route_container->addRoute([
+		$routes->addRoute([
 			"url" => "/projects/delete/",
 			"name" => "site:project:delete",
 			"method" => [$this, "actionDelete"],
 		]);
-		$route_container->addRoute([
+		$routes->addRoute([
 			"url" => "/projects/settings/",
 			"name" => "site:project:settings",
 			"method" => [$this, "actionSettings"],

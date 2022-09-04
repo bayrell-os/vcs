@@ -30,7 +30,7 @@ namespace App\Admin\Routes;
 
 use TinyPHP\RenderContainer;
 use TinyPHP\Route;
-use TinyPHP\RouteContainer;
+use TinyPHP\RouteList;
 
 
 class DefaultRoute extends Route
@@ -39,9 +39,9 @@ class DefaultRoute extends Route
 	/**
 	 * Declare routes
 	 */
-	function routes(RouteContainer $route_container)
+	function routes(RouteList $routes)
 	{
-		$route_container->addRoute([
+		$routes->addRoute([
 			"url" => "/",
 			"name" => "site:index",
 			"method" => [$this, "actionIndex"],
