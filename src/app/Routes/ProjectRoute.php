@@ -31,7 +31,7 @@ namespace App\Routes;
 use App\AppHelper;
 use App\Models\Project;
 use App\Models\User;
-use App\Models\UserGroup;
+use App\Models\UserRoles;
 use TinyPHP\RenderContainer;
 use TinyPHP\Route;
 use TinyPHP\RouteList;
@@ -345,12 +345,12 @@ class ProjectRoute extends Route
 		}, $users_list);
 		
 		/* Get user and group list */
-		$groups_list = UserGroup::selectQuery()
+		$groups_list = UserRoles::selectQuery()
 			->where("is_deleted", 0)
 			->all()
 		;
 		$groups_list = array_map(function($item){
-			return "@".$item["name"];
+			return $item["name"];
 		}, $groups_list);
 		
 		/* Merge and sort */

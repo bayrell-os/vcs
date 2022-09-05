@@ -30,8 +30,8 @@ namespace App\Admin\Console;
 
 use App\Docker;
 use App\Models\User;
-use App\Models\UserGroup;
-use App\Models\UsersInGroups;
+use App\Models\UserRoles;
+use App\Models\UsersInRoles;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -57,25 +57,30 @@ class UsersUpdate extends Command
 
 	protected function execute(InputInterface $input, OutputInterface $output): int
 	{
+		$space_uid = env("CLOUD_OS_SPACE_UID");
+		
 		/* Call api */
 		$res = Bus::call
 		(
-			"/cloud_os/bus/users/dump/",
+			"/cloud_os/space/users/",
 			[
+				"space_uid" => $space_uid,
 			]
 		);
+		
+		$res->debug();
 		
 		/* If success */
 		if ($res->isSuccess())
 		{
 			$users = isset($res->result["users"]) ? $res->result["users"] : [];
-			$groups = isset($res->result["groups"]) ? $res->result["groups"] : [];
-			$users_in_groups = isset($res->result["users_in_groups"]) ?
-				$res->result["users_in_groups"] : [];
-			
+			$roles = isset($res->result["roles"]) ? $res->result["roles"] : [];
+			$users_roles = isset($res->result["users_roles"]) ?
+				$res->result["users_roles"] : [];
+				
 			User::sync($users);
-			UserGroup::sync($groups);
-			UsersInGroups::sync($users_in_groups);
+			UserRoles::sync($roles);
+			UsersInRoles::sync($users_roles);
 		}
 		
 		return Command::SUCCESS;

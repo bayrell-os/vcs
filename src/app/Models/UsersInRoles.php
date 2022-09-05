@@ -31,14 +31,14 @@ namespace App\Models;
 use TinyORM\Model;
 
 
-class UsersInGroups extends Model
+class UsersInRoles extends Model
 {
 	/**
 	 * Return table name
 	 */
 	static function getTableName()
 	{
-		return "users_in_groups";
+		return "users_in_roles";
 	}
 	
 	
@@ -48,7 +48,7 @@ class UsersInGroups extends Model
 	 */
 	static function pk()
 	{
-		return ["user_id", "group_id"];
+		return ["user_id", "role_id"];
 	}
 	
 	
@@ -61,7 +61,7 @@ class UsersInGroups extends Model
 		return
 		[
 			"user_id" => [],
-			"group_id" => [],
+			"role_id" => [],
 			"is_deleted" => [],
 			"gmtime_created" => [],
 			"gmtime_updated" => [],

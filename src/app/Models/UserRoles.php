@@ -23,14 +23,14 @@ namespace App\Models;
 use TinyORM\Model;
 
 
-class UserGroup extends Model
+class UserRoles extends Model
 {
 	/**
 	 * Return table name
 	 */
 	static function getTableName()
 	{
-		return "users_groups";
+		return "users_roles";
 	}
 	
 	

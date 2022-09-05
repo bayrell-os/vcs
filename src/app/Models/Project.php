@@ -31,7 +31,7 @@ namespace App\Models;
 use App\Models\Project;
 use App\Models\ProjectUser;
 use App\Models\User;
-use App\Models\UserGroup;
+use App\Models\UserRoles;
 use TinyPHP\Utils;
 use TinyORM\Model;
 
@@ -623,7 +623,7 @@ class Project extends Model
 		;
 		
 		/* Get groups */
-		$groups = UserGroup::selectQuery()
+		$groups = UserRoles::selectQuery()
 			->where("is_deleted", "=", 0)
 			->all()
 		;
@@ -643,7 +643,7 @@ class Project extends Model
 			
 			if ($name[0] == "@")
 			{
-				$item_name = substr($name, 1);
+				//$item_name = substr($name, 1);
 				$item_type = 2;
 				$arr = $groups;
 			}
@@ -681,7 +681,7 @@ class Project extends Model
 			$item_id = $item ? $item["id"] : 0;
 			$item_type = 0;
 			if ($item instanceof User) $item_type = 1;
-			if ($item instanceof UserGroup) $item_type = 2;
+			if ($item instanceof UserRoles) $item_type = 2;
 			
 			$project_user = ProjectUser::findOrCreate([
 				"project_id" => $project_id,

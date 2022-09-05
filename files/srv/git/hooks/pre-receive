@@ -30,7 +30,7 @@ def get_project(project_name):
 """
     Returns current project name
 """
-def find_project(project_name):
+def find_project(project_id):
     
     if len(project_name) == 0:
         return ""
@@ -73,7 +73,7 @@ def get_user(user_login):
     1 - read only
     2 - write
 """
-def check_access_level(user_login, project_name):
+def check_access_level(user_login, project_id):
     
     user = get_user(user_login)
     if user is None:
@@ -93,17 +93,17 @@ def check_access_level(user_login, project_name):
 
         where
             projects.type="git" and
-            projects.name=:project_name and
+            projects.id=:project_id and
             projects.is_deleted=0 and
             (projects_users.name in (
 
                 select
-                    "@" || users_groups.name as group_name
+                    "@" || users_roles.name as group_name
                 
                 from users
 
-                inner join users_in_groups on (users_in_groups.user_id=users.id)
-                inner join users_groups on (users_in_groups.group_id=users_groups.id)
+                inner join users_in_roles on (users_in_roles.user_id=users.id)
+                inner join users_roles on (users_in_roles.role_id=users_roles.id)
 
                 where
                     users.login=:user_login
@@ -114,7 +114,7 @@ def check_access_level(user_login, project_name):
     """
     
     cur = db_con.cursor()
-    res = cur.execute(sql, {"user_login": user_login, "project_name": project_name})
+    res = cur.execute(sql, {"user_login": user_login, "project_id": project_id})
     
     access_value = 0
     for row in res:
@@ -135,21 +135,16 @@ def check_access_level(user_login, project_name):
     Core code
 """
 git_project_path = os.getcwd()
-git_repo_path = "/data/repo/git"
+git_repo_path = "/data/repo/id/"
 
-if git_project_path[0:len(git_repo_path)] != "/data/repo/git":
+if git_project_path[0:len(git_repo_path)] != "/data/repo/id/":
     print ("Error repo path")
     exit(1)
 
-project_name = git_project_path[len(git_repo_path):]
-project_name = find_project(project_name)
-
-if project_name == "":
-    print ("Project not found")
-    exit(1)
+project_id = git_project_path[len(git_repo_path):]
 
 user_login = os.getenv("HTTP_JWT_AUTH_USER")
-access_level = check_access_level(user_login, project_name)
+access_level = check_access_level(user_login, project_id)
 
 if access_level != 2:
     print ("Write access is denied")

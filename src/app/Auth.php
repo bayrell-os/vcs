@@ -21,8 +21,8 @@
 namespace App;
 
 use App\Models\User;
-use App\Models\UserGroup;
-use App\Models\UsersInGroups;
+use App\Models\UserRoles;
+use App\Models\UsersInRoles;
 
 
 class Auth extends \TinyPHP\Auth
@@ -55,7 +55,7 @@ class Auth extends \TinyPHP\Auth
 	 */
 	function isAdmin()
 	{
-		return $this->hasGroup("admin");
+		return $this->hasGroup("@admin");
 	}
 	
 	
@@ -85,15 +85,15 @@ class Auth extends \TinyPHP\Auth
 		}
 		
 		/* Get users groups */
-		$groups = UserGroup::selectQuery()
+		$groups = UserRoles::selectQuery()
 			->fields("t.*")
 			->innerJoin(
-				UsersInGroups::getTableName(),
-				"users_in_groups",
-				"users_in_groups.group_id = t.id"
+				UsersInRoles::getTableName(),
+				"users_in_roles",
+				"users_in_roles.role_id = t.id"
 			)
-			->where("users_in_groups.user_id", "=", $user->id)
-			->where("users_in_groups.is_deleted", "=", 0)
+			->where("users_in_roles.user_id", "=", $user->id)
+			->where("users_in_roles.is_deleted", "=", 0)
 			->where("t.is_deleted", "=", 0)
 			->all(true)
 		;

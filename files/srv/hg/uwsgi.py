@@ -10,7 +10,7 @@ hgweb_config = "/srv/hg/hgweb.config"
 db_con = sqlite3.connect('/data/db/vcs.db')
 db_con.row_factory = sqlite3.Row
 
-debug = True
+debug = False
 
 """
     Return route prefix
@@ -18,8 +18,8 @@ debug = True
 def get_route_prefix(env):
    
     route_prefix = ""
-    if 'HTTP_X_ROUTE_PREFIX' in env:
-        route_prefix = env['HTTP_X_ROUTE_PREFIX']
+    if 'HTTP_X_FORWARDED_PREFIX' in env:
+        route_prefix = env['HTTP_X_FORWARDED_PREFIX']
     
     return route_prefix
 
@@ -154,12 +154,12 @@ def check_access_level(user_login, project_name):
             (projects_users.name in (
 
                 select
-                    "@" || users_groups.name as group_name
+                    "@" || users_roles.name as group_name
                 
                 from users
 
-                inner join users_in_groups on (users_in_groups.user_id=users.id)
-                inner join users_groups on (users_in_groups.group_id=users_groups.id)
+                inner join users_in_roles on (users_in_roles.user_id=users.id)
+                inner join users_roles on (users_in_roles.role_id=users_roles.id)
 
                 where
                     users.login=:user_login
