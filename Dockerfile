@@ -1,5 +1,5 @@
-ARG ARCH=
-FROM bayrell/virtual_space:0.4
+ARG ARCH=amd64
+FROM bayrell/virtual_space:0.4-${ARCH}
 
 RUN cd ~; \
     apk update; \
